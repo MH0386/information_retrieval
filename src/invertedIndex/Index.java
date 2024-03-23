@@ -66,6 +66,7 @@ public class Index {
                 int file_length = 0;
                 while ((ln = file.readLine()) != null) {
                     String[] words = ln.split("\\W+");
+                    file_length += words.length;
                     for (String word : words) {
                         word = word.toLowerCase();
                         if (stopWord(word)) {
@@ -247,20 +248,19 @@ public class Index {
 
     public void store(String storageName) {
         try {
-            String pathToStorage = "/home/ehab/tmp11/rl/" + storageName;
+            String pathToStorage = "src\\" + storageName;
             Writer wr = new FileWriter(pathToStorage);
             for (Map.Entry<Integer, SourceRecord> entry : sources.entrySet()) {
                 System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue().URL + ", Value = "
                         + entry.getValue().title + ", Value = " + entry.getValue().text);
                 wr.write(entry.getKey().toString() + ",");
-                wr.write(entry.getValue().URL.toString() + ",");
+                wr.write(entry.getValue().URL + ",");
                 wr.write(entry.getValue().title.replace(',', '~') + ",");
                 wr.write(entry.getValue().length + ","); // String formattedDouble = String.format("%.2f", fee );
                 wr.write(String.format("%4.4f", entry.getValue().norm) + ",");
-                wr.write(entry.getValue().text.toString().replace(',', '~') + "\n");
+                wr.write(entry.getValue().text.replace(',', '~') + "\n");
             }
             wr.write("section2" + "\n");
-
             Iterator it = index.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry pair = (Map.Entry) it.next();
