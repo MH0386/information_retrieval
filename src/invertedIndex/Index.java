@@ -12,7 +12,7 @@ import java.util.Map;
 public class Index {
 
     // --------------------------------------------
-    int N = 0;
+    int num_files = 0;
     public Map<Integer, SourceRecord> sources; // store the doc_id and the file name.
 
     public HashMap<String, DictEntry> index; // THe inverted index
@@ -23,8 +23,8 @@ public class Index {
         index = new HashMap<String, DictEntry>();
     }
 
-    public void setN(int n) {
-        N = n;
+    public void setNum_files(int num_files) {
+        this.num_files = num_files;
     }
 
     // ---------------------------------------------
@@ -32,9 +32,10 @@ public class Index {
         // Iterator<Integer> it2 = hset.iterator();
         System.out.print("[");
         while (p != null) {
-            /// -4- **** complete here ****
-            // fix get rid of the last comma
-            System.out.print("" + p.docId + ",");
+            System.out.print(p.docId);
+            if (p.next != null) {
+                System.out.print(", ");
+            }
             p = p.next;
         }
         System.out.println("]");
@@ -46,7 +47,7 @@ public class Index {
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             DictEntry dd = (DictEntry) pair.getValue();
-            System.out.print("** [" + pair.getKey() + "," + dd.doc_freq + "]       =--> ");
+            System.out.print("[ " + pair.getKey() + ", " + dd.doc_freq +", "+ dd.term_freq+ " ]\t\t=--> ");
             printPostingList(dd.pList);
         }
         System.out.println("------------------------------------------------------");
@@ -72,7 +73,7 @@ public class Index {
                         if (stopWord(word)) {
                             continue;
                         }
-                        word = stemWord(word);
+//                        word = stemWord(word);
                         if (!index.containsKey(word)) {
                             index.put(word, new DictEntry());
                         }
@@ -85,11 +86,10 @@ public class Index {
                                 index.get(word).last.next = new Posting(file_id);
                                 index.get(word).last = index.get(word).last.next;
                             }
-                        } else
+                        } else {
                             index.get(word).last.dtf += 1;
-
+                        }
                         index.get(word).term_freq += 1;
-                        index.get(word).addPosting(file_id);
                     }
                 }
                 sources.get(file_id).length = file_length;
@@ -179,27 +179,23 @@ public class Index {
 
     // ----------------------------------------------------------------------------
     Posting intersect(Posting pL1, Posting pL2) {
-        /// **** -1- complete after each comment ****
-        // INTERSECT ( p1 , p2 )
-        // 1 answer ← {}
         Posting answer = null;
-        Posting last = null;
-        // 2 while p1 != NIL and p2 != NIL
-
-        // 3 do if docID ( p 1 ) = docID ( p2 )
-
-        // 4 then ADD ( answer, docID ( p1 ))
-        // answer.add(pL1.docId);
-
-        // 5 p1 ← next ( p1 )
-        // 6 p2 ← next ( p2 )
-
-        // 7 else if docID ( p1 ) < docID ( p2 )
-
-        // 8 then p1 ← next ( p1 )
-        // 9 else p2 ← next ( p2 )
-
-        // 10 return answer
+//        Posting last = null;
+        while (pL1 != null && pL2 != null){
+            if (pL1.docId == pL2.docId){
+                if (answer == null){
+                    answer = new Posting(pL1.docId, pL1.dtf + pL2.dtf);
+                } else {
+                    answer.next = new Posting(pL1.docId, pL1.dtf + pL2.dtf);
+                }
+                pL1 = pL1.next;
+                pL2 = pL2.next;
+            } else if (pL1.docId < pL2.docId){
+                pL1 = pL1.next;
+            } else {
+                pL2 = pL2.next;
+            }
+        }
         return answer;
     }
 
@@ -251,8 +247,7 @@ public class Index {
             String pathToStorage = "src\\" + storageName;
             Writer wr = new FileWriter(pathToStorage);
             for (Map.Entry<Integer, SourceRecord> entry : sources.entrySet()) {
-                System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue().URL + ", Value = "
-                        + entry.getValue().title + ", Value = " + entry.getValue().text);
+//                System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue().URL + ", Value = " + entry.getValue().title + ", Value = " + entry.getValue().text);
                 wr.write(entry.getKey().toString() + ",");
                 wr.write(entry.getValue().URL + ",");
                 wr.write(entry.getValue().title.replace(',', '~') + ",");
@@ -265,8 +260,7 @@ public class Index {
             while (it.hasNext()) {
                 Map.Entry pair = (Map.Entry) it.next();
                 DictEntry dd = (DictEntry) pair.getValue();
-                // System.out.print("** [" + pair.getKey() + "," + dd.doc_freq + "] <" +
-                // dd.term_freq + "> =--> ");
+                // System.out.print("** [" + pair.getKey() + "," + dd.doc_freq + "] <" + dd.term_freq + "> =--> ");
                 wr.write(pair.getKey().toString() + "," + dd.doc_freq + "," + dd.term_freq + ";");
                 Posting p = dd.pList;
                 while (p != null) {
@@ -278,8 +272,7 @@ public class Index {
             }
             wr.write("end" + "\n");
             wr.close();
-            System.out.println("=============EBD STORE=============");
-
+//            System.out.println("=============EBD STORE=============");
         } catch (Exception e) {
             e.printStackTrace();
         }

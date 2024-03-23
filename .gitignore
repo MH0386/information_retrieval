@@ -1,3 +1,5 @@
 *.class
 *.pdf
 *.mp4
+out/
+.idea/
