@@ -47,7 +47,7 @@ public class Index {
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             DictEntry dd = (DictEntry) pair.getValue();
-            System.out.print("[ " + pair.getKey() + ", " + dd.doc_freq +", "+ dd.term_freq+ " ]\t\t=--> ");
+            System.out.print("[ " + pair.getKey() + ", " + dd.doc_freq + ", " + dd.term_freq + " ]\t\t=--> ");
             printPostingList(dd.pList);
         }
         System.out.println("------------------------------------------------------");
@@ -55,13 +55,12 @@ public class Index {
     }
 
     // -----------------------------------------------
-    @SuppressWarnings("unlikely-arg-type")
     public void buildIndex(String[] files) {
         int file_id = 0;
         for (String file_name : files) {
             try (BufferedReader file = new BufferedReader(new FileReader(file_name))) {
                 if (!sources.containsKey(file_name)) {
-                    sources.put(file_id, new SourceRecord(file_id, null, file_name, "notext"));
+                    sources.put(file_id, new SourceRecord(file_id, file_name, file_name, "notext"));
                 }
                 String ln;
                 int file_length = 0;
@@ -73,7 +72,7 @@ public class Index {
                         if (stopWord(word)) {
                             continue;
                         }
-//                        word = stemWord(word);
+                        // word = stemWord(word);
                         if (!index.containsKey(word)) {
                             index.put(word, new DictEntry());
                         }
@@ -180,17 +179,17 @@ public class Index {
     // ----------------------------------------------------------------------------
     Posting intersect(Posting pL1, Posting pL2) {
         Posting answer = null;
-//        Posting last = null;
-        while (pL1 != null && pL2 != null){
-            if (pL1.docId == pL2.docId){
-                if (answer == null){
+        // Posting last = null;
+        while (pL1 != null && pL2 != null) {
+            if (pL1.docId == pL2.docId) {
+                if (answer == null) {
                     answer = new Posting(pL1.docId, pL1.dtf + pL2.dtf);
                 } else {
                     answer.next = new Posting(pL1.docId, pL1.dtf + pL2.dtf);
                 }
                 pL1 = pL1.next;
                 pL2 = pL2.next;
-            } else if (pL1.docId < pL2.docId){
+            } else if (pL1.docId < pL2.docId) {
                 pL1 = pL1.next;
             } else {
                 pL2 = pL2.next;
@@ -199,13 +198,18 @@ public class Index {
         return answer;
     }
 
-    public String find_24_01(String phrase) { // any mumber of terms non-optimized search
+    public String find(String phrase) { // any number of terms non-optimized search
         String result = "";
         String[] words = phrase.split("\\W+");
         int len = words.length;
 
-        // fix this if word is not in the hash table will crash...
-        Posting posting = index.get(words[0].toLowerCase()).pList;
+        // fix this if word is not in the hash table will crash (done)
+        Posting posting = null;
+        try {
+            posting = index.get(words[0].toLowerCase()).pList;
+        } catch (NullPointerException e) {
+            return "No results found\n";
+        }
         int i = 1;
         while (i < len) {
             posting = intersect(posting, index.get(words[i].toLowerCase()).pList);
@@ -247,7 +251,9 @@ public class Index {
             String pathToStorage = "src\\" + storageName;
             Writer wr = new FileWriter(pathToStorage);
             for (Map.Entry<Integer, SourceRecord> entry : sources.entrySet()) {
-//                System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue().URL + ", Value = " + entry.getValue().title + ", Value = " + entry.getValue().text);
+                // System.out.println("Key = " + entry.getKey() + ", Value = " +
+                // entry.getValue().URL + ", Value = " + entry.getValue().title + ", Value = " +
+                // entry.getValue().text);
                 wr.write(entry.getKey().toString() + ",");
                 wr.write(entry.getValue().URL + ",");
                 wr.write(entry.getValue().title.replace(',', '~') + ",");
@@ -260,7 +266,8 @@ public class Index {
             while (it.hasNext()) {
                 Map.Entry pair = (Map.Entry) it.next();
                 DictEntry dd = (DictEntry) pair.getValue();
-                // System.out.print("** [" + pair.getKey() + "," + dd.doc_freq + "] <" + dd.term_freq + "> =--> ");
+                // System.out.print("** [" + pair.getKey() + "," + dd.doc_freq + "] <" +
+                // dd.term_freq + "> =--> ");
                 wr.write(pair.getKey().toString() + "," + dd.doc_freq + "," + dd.term_freq + ";");
                 Posting p = dd.pList;
                 while (p != null) {
@@ -272,7 +279,7 @@ public class Index {
             }
             wr.write("end" + "\n");
             wr.close();
-//            System.out.println("=============EBD STORE=============");
+            // System.out.println("=============EBD STORE=============");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -280,7 +287,7 @@ public class Index {
 
     // =========================================
     public boolean storageFileExists(String storageName) {
-        java.io.File f = new java.io.File("/home/ehab/tmp11/rl/" + storageName);
+        java.io.File f = new java.io.File("src\\" + storageName);
         if (f.exists() && !f.isDirectory())
             return true;
         return false;
@@ -290,7 +297,7 @@ public class Index {
     // ----------------------------------------------------
     public void createStore(String storageName) {
         try {
-            String pathToStorage = "/home/ehab/tmp11/" + storageName;
+            String pathToStorage = "src\\" + storageName;
             Writer wr = new FileWriter(pathToStorage);
             wr.write("end" + "\n");
             wr.close();
@@ -304,7 +311,7 @@ public class Index {
     // load index from hard disk into memory
     public HashMap<String, DictEntry> load(String storageName) {
         try {
-            String pathToStorage = "/home/ehab/tmp11/rl/" + storageName;
+            String pathToStorage = "src\\" + storageName;
             sources = new HashMap<Integer, SourceRecord>();
             index = new HashMap<String, DictEntry>();
             BufferedReader file = new BufferedReader(new FileReader(pathToStorage));

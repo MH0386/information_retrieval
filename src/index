@@ -1,10 +1,10 @@
-0,null,src\collection\p1,1435,0.0000,notext
-1,null,src\collection\p2,1401,0.0000,notext
-2,null,src\collection\p3,1936,0.0000,notext
-3,null,src\collection\p4,2014,0.0000,notext
-4,null,src\collection\p5,2099,0.0000,notext
-5,null,src\collection\p6,2233,0.0000,notext
-6,null,src\collection\p7,2221,0.0000,notext
+0,src\collection\p1,src\collection\p1,1435,0.0000,notext
+1,src\collection\p2,src\collection\p2,1401,0.0000,notext
+2,src\collection\p3,src\collection\p3,1936,0.0000,notext
+3,src\collection\p4,src\collection\p4,2014,0.0000,notext
+4,src\collection\p5,src\collection\p5,2099,0.0000,notext
+5,src\collection\p6,src\collection\p6,2233,0.0000,notext
+6,src\collection\p7,src\collection\p7,2221,0.0000,notext
 section2
 episodic,1,1;4,1:
 wastes,1,1;0,1:
