@@ -21,8 +21,8 @@ public class App {
             fileList[i] = files + fileList[i];
         }
         index.buildIndex(fileList);
-        // index.store("index");
-        // index.printDictionary();
+        index.store("index");
+        index.printDictionary();
 
         String test3 = "data  should plain greatest comif"; // data should plain greatest comif
         System.out.println("Boolean Model result = \n" + index.find(test3));

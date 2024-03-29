@@ -47,7 +47,7 @@ public class Index {
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             DictEntry dd = (DictEntry) pair.getValue();
-            System.out.print("[ " + pair.getKey() + ", " + dd.doc_freq + ", " + dd.term_freq + " ]\t\t=--> ");
+            System.out.print("[ " + pair.getKey() + ", " + dd.doc_freq + " ]\t\t=--> ");
             printPostingList(dd.pList);
         }
         System.out.println("------------------------------------------------------");
