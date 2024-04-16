@@ -1,18 +1,15 @@
 package invertedIndex;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.List;
 
 public class App {
     public static void main(String args[]) throws IOException {
         Index index = new Index();
         String files = "src\\collection\\";
         File file = new File(files);
-        // |** String[] list()
-        // |** Returns an array of strings naming the files and directories in the
-        // directory denoted by this abstract pathname.
+
         String[] fileList = file.list();
         fileList = index.sort(fileList);
         index.num_files = fileList.length;
@@ -24,8 +21,12 @@ public class App {
         index.store("index");
         // index.printDictionary();
 
-        // String test3 = "data  should plain greatest comif"; // data should plain greatest comif
+        // String test3 = "data should plain greatest comif"; // data should plain
+        // greatest comif
         // System.out.println("Boolean Model result = \n" + index.find(test3));
+
+        String test4 = "data  should plain greatest comif"; // data should plain greatest comif
+        System.out.println("Boolean Model result = " + index.positionalIndex(test4));
 
         // Posting p1 = new Posting(1);
         // p1.next = new Posting(2);
@@ -41,17 +42,20 @@ public class App {
         // Single word search
         // String phrase = "";
         // do {
-        //     System.out.println("Print search phrase: ");
-        //     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        //     phrase = in.readLine();
-        //     if (!phrase.isEmpty()) {
-        //         System.out.println("Phrase Model result = \n" + index.find(phrase));
-        //     }
+        // System.out.println("Print search phrase: ");
+        // BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        // phrase = in.readLine();
+        // if (!phrase.isEmpty()) {
+        // System.out.println("Phrase Model result = \n" + index.find(phrase));
+        // }
         // } while (!phrase.isEmpty());
 
         // Bi-word search
         // phrase = "";
-        index.buildBiwordIndex();
-        index.printDictionary();
+        // index.buildBiwordIndex();
+        // index.printDictionary();
+        String phrase = "comif";
+        List<Integer> result = positional_list(phrase);
+        System.out.println(result);
     }
 }

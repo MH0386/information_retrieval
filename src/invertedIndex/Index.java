@@ -182,6 +182,44 @@ public class Index {
     }
 
     // ----------------------------------------------------------------------------
+    public List<Integer> positional_list(String word) {
+        List<Integer> result = new ArrayList<>();
+        Posting posting = index.get(word).pList;
+        while (posting != null) {
+            // try (BufferedReader file = new BufferedReader(new
+            // FileReader("src\\collection\\" + posting.docId))) {
+            // System.out.println("Doc ID: " + posting.docId);
+            // }
+            result.add(posting.docId);
+            posting = posting.next;
+        }
+        return result;
+    }
+
+    // ----------------------------------------------------------------------------
+    public int positionalIndex(String phrase) {
+        int result = 0;
+        String[] words = phrase.split("\\W+");
+        int len = words.length;
+        Posting posting = null;
+        try {
+            posting = index.get(words[0].toLowerCase()).pList;
+        } catch (NullPointerException e) {
+            return 0;
+        }
+        int i = 1;
+        while (i < len) {
+            posting = intersect(posting, index.get(words[i].toLowerCase()).pList);
+            i++;
+        }
+        while (posting != null) {
+            result += 1;
+            posting = posting.next;
+        }
+        return result;
+    }
+
+    // ----------------------------------------------------------------------------
     public int indexOneLine(String ln, int fid) {
         int flen = 0;
 
@@ -263,7 +301,6 @@ public class Index {
         String[] words = phrase.split("\\W+");
         int len = words.length;
 
-        // fix this if word is not in the hash table will crash (done)
         Posting posting = null;
         try {
             posting = index.get(words[0].toLowerCase()).pList;
@@ -276,7 +313,6 @@ public class Index {
             i++;
         }
         while (posting != null) {
-            // System.out.println("\t" + sources.get(num));
             result += "\t" + posting.docId + " - " + sources.get(posting.docId).title + " - "
                     + sources.get(posting.docId).length + "\n";
             posting = posting.next;
@@ -351,7 +387,6 @@ public class Index {
         if (f.exists() && !f.isDirectory())
             return true;
         return false;
-
     }
 
     // ----------------------------------------------------
