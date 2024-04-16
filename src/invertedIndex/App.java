@@ -2,7 +2,6 @@ package invertedIndex;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 public class App {
     public static void main(String args[]) throws IOException {
@@ -25,8 +24,9 @@ public class App {
         // greatest comif
         // System.out.println("Boolean Model result = \n" + index.find(test3));
 
-        String test4 = "data  should plain greatest comif"; // data should plain greatest comif
-        System.out.println("Boolean Model result = " + index.positionalIndex(test4));
+        // String test4 = "data should plain greatest comif"; // data should plain
+        // greatest comif
+        // System.out.println("Boolean Model result = " + index.positionalIndex(test4));
 
         // Posting p1 = new Posting(1);
         // p1.next = new Posting(2);
@@ -54,8 +54,8 @@ public class App {
         // phrase = "";
         // index.buildBiwordIndex();
         // index.printDictionary();
-        String phrase = "comif";
-        List<Integer> result = positional_list(phrase);
-        System.out.println(result);
+        String phrase = "should plain";
+        System.out.println("Positional result \n" + index.positionalIndex(phrase));
+
     }
 }

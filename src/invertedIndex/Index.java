@@ -150,7 +150,6 @@ public class Index {
     }
 
     // ----------------------------------------------------------------------------
-    @SuppressWarnings("unchecked")
     public void buildBiwordIndex() {
         List<String> WORDS = new ArrayList<>();
         Iterator it = index.entrySet().iterator();
@@ -182,41 +181,72 @@ public class Index {
     }
 
     // ----------------------------------------------------------------------------
-    public List<Integer> positional_list(String word) {
-        List<Integer> result = new ArrayList<>();
-        Posting posting = index.get(word).pList;
+    public List<List<Integer>> positional_list(String Word) {
+        List<List<Integer>> result = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            result.add(new ArrayList<>());
+        }
+        Posting posting = index.get(Word).pList;
         while (posting != null) {
-            // try (BufferedReader file = new BufferedReader(new
-            // FileReader("src\\collection\\" + posting.docId))) {
-            // System.out.println("Doc ID: " + posting.docId);
-            // }
-            result.add(posting.docId);
+            posting.docId += 1;
+            List<String> WORDS = new ArrayList<>();
+            try (BufferedReader file = new BufferedReader(new FileReader("src\\collection\\p" + posting.docId))) {
+                // System.out.println("Doc ID: " + posting.docId);
+                String ln;
+                while ((ln = file.readLine()) != null) {
+                    String[] words = ln.split("\\W+");
+                    for (String word : words) {
+                        WORDS.add(word.toLowerCase());
+                    }
+                }
+                // System.out.println(WORDS + "\n"+ WORDS.size());
+                for (int i = 0; i < WORDS.size(); i++) {
+                    if (WORDS.get(i).equals(Word)) {
+                        result.get(posting.docId - 1).add(i + 1);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             posting = posting.next;
         }
         return result;
     }
 
     // ----------------------------------------------------------------------------
-    public int positionalIndex(String phrase) {
-        int result = 0;
+    public boolean is_sequential_list(List<Integer> l1, List<Integer> l2) {
+        for (int i = 0; i < l2.size(); i++) {
+            for (int j = 0; j < l1.size(); j++) {
+                if (l2.get(i) == l1.get(j) + 1) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public List<Integer> positionalIndex(String phrase) {
         String[] words = phrase.split("\\W+");
-        int len = words.length;
-        Posting posting = null;
-        try {
-            posting = index.get(words[0].toLowerCase()).pList;
-        } catch (NullPointerException e) {
-            return 0;
+        List<List<List<Integer>>> all_positions = new ArrayList<>();
+        List<List<Integer>> pairs;
+        List<Integer> common_doc = new ArrayList<>();
+        for (int i = 0; i < words.length; i++) {
+            all_positions.add(new ArrayList<>());
         }
-        int i = 1;
-        while (i < len) {
-            posting = intersect(posting, index.get(words[i].toLowerCase()).pList);
-            i++;
+        for (int i = 0; i < words.length; i++) {
+            all_positions.get(i).addAll(positional_list(words[i]));
         }
-        while (posting != null) {
-            result += 1;
-            posting = posting.next;
+        for (int j = 0; j < 7; j++) {
+            pairs = new ArrayList<>();
+            for (int i = 0; i < words.length; i++) {
+                pairs.add(all_positions.get(i).get(j));
+            }
+            if (is_sequential_list(pairs.get(0), pairs.get(1))) {
+                common_doc.add(j + 1);
+            }
+            // System.out.println(pairs);
         }
-        return result;
+        return common_doc;
     }
 
     // ----------------------------------------------------------------------------
