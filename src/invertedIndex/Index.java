@@ -4,9 +4,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class Index {
@@ -42,6 +45,7 @@ public class Index {
     }
 
     // ---------------------------------------------
+    @SuppressWarnings("rawtypes")
     public void printDictionary() {
         Iterator it = index.entrySet().iterator();
         while (it.hasNext()) {
@@ -52,6 +56,28 @@ public class Index {
         }
         System.out.println("------------------------------------------------------");
         System.out.println("*** Number of terms = " + index.size());
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter("output.txt"))) {
+            Iterator it2 = index.entrySet().iterator();
+            while (it2.hasNext()) {
+                Map.Entry pair2 = (Map.Entry) it2.next();
+                DictEntry dd2 = (DictEntry) pair2.getValue();
+                writer.print("[ " + pair2.getKey() + ", " + dd2.doc_freq + " ]\t\t=--> ");
+                Posting p = dd2.pList;
+                writer.print("[");
+                while (p != null) {
+                    writer.print(p.docId);
+                    if (p.next != null) {
+                        writer.print(", ");
+                    }
+                    p = p.next;
+                }
+                writer.println("]");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     // -----------------------------------------------
@@ -99,6 +125,60 @@ public class Index {
             file_id++;
         }
         // printDictionary();
+    }
+
+    // ----------------------------------------------------------------------------
+    Posting intersect(Posting pL1, Posting pL2) {
+        Posting answer = null;
+        // Posting last = null;
+        while (pL1 != null && pL2 != null) {
+            if (pL1.docId == pL2.docId) {
+                if (answer == null) {
+                    answer = new Posting(pL1.docId, pL1.dtf + pL2.dtf);
+                } else {
+                    answer.next = new Posting(pL1.docId, pL1.dtf + pL2.dtf);
+                }
+                pL1 = pL1.next;
+                pL2 = pL2.next;
+            } else if (pL1.docId < pL2.docId) {
+                pL1 = pL1.next;
+            } else {
+                pL2 = pL2.next;
+            }
+        }
+        return answer;
+    }
+
+    // ----------------------------------------------------------------------------
+    @SuppressWarnings("unchecked")
+    public void buildBiwordIndex() {
+        List<String> WORDS = new ArrayList<>();
+        Iterator it = index.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            WORDS.add(pair.getKey().toString());
+        }
+        for (int i = 0; i < WORDS.size() - 1; i++) {
+            String word1 = WORDS.get(i);
+            String word2 = WORDS.get(i + 1);
+            String biword = word1 + "_" + word2;
+            if (!index.containsKey(biword)) {
+                index.put(biword, new DictEntry());
+            }
+            Posting p1 = index.get(word1).pList;
+            Posting p2 = index.get(word2).pList;
+            Posting p_intersect = intersect(p1, p2);
+            // size of p_intersect
+            int size = 0;
+            Posting p = p_intersect;
+            while (p != null) {
+                size++;
+                p = p.next;
+            }
+            index.get(biword).doc_freq = size;
+            index.get(biword).pList = p_intersect;
+            // index.get(biword).last = p_intersect;
+        }
     }
 
     // ----------------------------------------------------------------------------
@@ -177,26 +257,6 @@ public class Index {
     }
 
     // ----------------------------------------------------------------------------
-    Posting intersect(Posting pL1, Posting pL2) {
-        Posting answer = null;
-        // Posting last = null;
-        while (pL1 != null && pL2 != null) {
-            if (pL1.docId == pL2.docId) {
-                if (answer == null) {
-                    answer = new Posting(pL1.docId, pL1.dtf + pL2.dtf);
-                } else {
-                    answer.next = new Posting(pL1.docId, pL1.dtf + pL2.dtf);
-                }
-                pL1 = pL1.next;
-                pL2 = pL2.next;
-            } else if (pL1.docId < pL2.docId) {
-                pL1 = pL1.next;
-            } else {
-                pL2 = pL2.next;
-            }
-        }
-        return answer;
-    }
 
     public String find(String phrase) { // any number of terms non-optimized search
         String result = "";

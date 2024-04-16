@@ -22,10 +22,10 @@ public class App {
         }
         index.buildIndex(fileList);
         index.store("index");
-        index.printDictionary();
+        // index.printDictionary();
 
-        String test3 = "data  should plain greatest comif"; // data should plain greatest comif
-        System.out.println("Boolean Model result = \n" + index.find(test3));
+        // String test3 = "data  should plain greatest comif"; // data should plain greatest comif
+        // System.out.println("Boolean Model result = \n" + index.find(test3));
 
         // Posting p1 = new Posting(1);
         // p1.next = new Posting(2);
@@ -38,14 +38,20 @@ public class App {
         // ans = ans.next;
         // }
 
-        String phrase = "";
-        do {
-            System.out.println("Print search phrase: ");
-            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-            phrase = in.readLine();
-            if (!phrase.isEmpty()) {
-                System.out.println("Phrase Model result = \n" + index.find(phrase));
-            }
-        } while (!phrase.isEmpty());
+        // Single word search
+        // String phrase = "";
+        // do {
+        //     System.out.println("Print search phrase: ");
+        //     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        //     phrase = in.readLine();
+        //     if (!phrase.isEmpty()) {
+        //         System.out.println("Phrase Model result = \n" + index.find(phrase));
+        //     }
+        // } while (!phrase.isEmpty());
+
+        // Bi-word search
+        // phrase = "";
+        index.buildBiwordIndex();
+        index.printDictionary();
     }
 }
