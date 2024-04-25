@@ -22,7 +22,7 @@ public class App {
         index.buildIndex();
         index.store("index");
         index.buildBiwordIndex();
-        index.printDictionary();
+        // index.printDictionary();
         // String test = "data should plain greatest comif";
         // System.out.println("Boolean Model result = \n" + index.find(test));
         // System.out.println("Boolean Model result = " + index.positionalIndex(test));
@@ -30,14 +30,14 @@ public class App {
         // Search
         String phrase = "";
         do {
-            System.out.println("Print search phrase: ");
+            System.out.print("Print Search Phrase: ");
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             phrase = in.readLine();
             if (!phrase.isEmpty()) {
                 if (phrase.contains("\"")) {
                     phrase = phrase.replaceAll("\"(\\w+)\\s+(\\w+)\"", "$1_$2").toLowerCase();
-                    System.out.println("\tSending: " + phrase);
                 }
+                    System.out.println("Sending: " + phrase);
                 System.out.println("Result = \n" + index.find(phrase));
             }
         } while (!phrase.isEmpty());

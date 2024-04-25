@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -348,18 +349,22 @@ public class Index {
     public String find(String phrase) { // any number of terms non-optimized search
         String result = "";
         String[] words = phrase.split("\\W+");
+        System.out.println("Searching for: " + Arrays.toString(words) + " with length: " + words.length);
         int len = words.length;
-
         Posting posting = null;
         try {
             posting = index.get(words[0].toLowerCase()).pList;
         } catch (NullPointerException e) {
             return "No results found\n";
         }
-        int i = 1;
-        while (i < len) {
-            posting = intersect(posting, index.get(words[i].toLowerCase()).pList);
-            i++;
+        try {
+            int i = 1;
+            while (i < len) {
+                posting = intersect(posting, index.get(words[i].toLowerCase()).pList);
+                i++;
+            }
+        } catch (NullPointerException e) {
+            return "No results found\n";
         }
         while (posting != null) {
             result += "\t" + posting.docId + " - " + sources.get(posting.docId).title + " - "
