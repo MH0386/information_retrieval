@@ -18,29 +18,14 @@ public class App {
         }
         index.buildIndex(fileList);
         index.store("index");
-        // index.printDictionary();
+        index.buildBiwordIndex();
 
-        // String test3 = "data should plain greatest comif"; // data should plain
-        // greatest comif
-        // System.out.println("Boolean Model result = \n" + index.find(test3));
+        // String test = "data should plain greatest comif";
+        // System.out.println("Boolean Model result = \n" + index.find(test));
+        // System.out.println("Boolean Model result = " + index.positionalIndex(test));
 
-        // String test4 = "data should plain greatest comif"; // data should plain
-        // greatest comif
-        // System.out.println("Boolean Model result = " + index.positionalIndex(test4));
-
-        // Posting p1 = new Posting(1);
-        // p1.next = new Posting(2);
-        // p1.next.next = new Posting(3);
-        // Posting p2 = new Posting(2);
-        // p2.next = new Posting(3);
-        // Posting ans = index.intersect(p1, p2);
-        // while (ans != null) {
-        // System.out.println(ans.docId);
-        // ans = ans.next;
-        // }
-
-        // Single word search
-        // String phrase = "";
+        // Search
+        String phrase = "";
         // do {
         // System.out.println("Print search phrase: ");
         // BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
@@ -49,13 +34,12 @@ public class App {
         // System.out.println("Phrase Model result = \n" + index.find(phrase));
         // }
         // } while (!phrase.isEmpty());
-
+        phrase = "\"Reinforcement Learning\"";
+        phrase = phrase.replaceAll("\"(\\w+)\\s+(\\w+)\"", "$1_$2").toLowerCase();
+        System.out.println("\tSending: " + phrase);
+        System.out.println("Phrase Model result = \n" + index.find(phrase));
         // Bi-word search
-        // phrase = "";
-        // index.buildBiwordIndex();
-        // index.printDictionary();
-        String phrase = "should plain";
-        System.out.println("Positional result \n" + index.positionalIndex(phrase));
-
+        // String phrase = "Reinforcement Learning";
+        // System.out.println("Positional result \n" + index.positionalIndex(phrase));
     }
 }

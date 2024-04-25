@@ -124,7 +124,6 @@ public class Index {
             }
             file_id++;
         }
-        // printDictionary();
     }
 
     // ----------------------------------------------------------------------------
@@ -227,6 +226,9 @@ public class Index {
 
     public List<Integer> positionalIndex(String phrase) {
         String[] words = phrase.split("\\W+");
+        for (int i = 0; i < words.length; i++) {
+            words[i] = words[i].toLowerCase();
+        }
         List<List<List<Integer>>> all_positions = new ArrayList<>();
         List<List<Integer>> pairs;
         List<Integer> common_doc = new ArrayList<>();
@@ -246,6 +248,12 @@ public class Index {
             }
             // System.out.println(pairs);
         }
+        // for (int i = 0; i < all_positions.size(); i++) {
+        // for (int j = 0; j < all_positions.get(i).size(); j++) {
+        // System.out.println(all_positions.get(i).get(j));
+        // System.out.println();
+        // }
+        // }
         return common_doc;
     }
 
@@ -254,8 +262,8 @@ public class Index {
         int flen = 0;
 
         String[] words = ln.split("\\W+");
-        // String[] words = ln.replaceAll("(?:[^a-zA-Z0-9 -]|(?<=\\w)-(?!\\S))", "
-        // ").toLowerCase().split("\\s+");
+        // String[] words = ln.replaceAll("(?:[^a-zA-Z0-9 -]|(?<=\\w)-(?!\\S))",
+        // "").toLowerCase().split("\\s+");
         flen += words.length;
         for (String word : words) {
             word = word.toLowerCase();
