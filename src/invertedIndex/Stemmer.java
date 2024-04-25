@@ -1,27 +1,20 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package invertedIndex;
 
-/**
- *
- * @author ehab
- */
-
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 /**
  * Stemmer, implementing the Porter Stemming Algorithm
  * <p>
- * The Stemmer class transforms a word into its root form.  The input
+ * The Stemmer class transforms a word into its root form. The input
  * word can be provided a character at time (by calling add()), or at once
  * by calling one of the various stem(something) methods.
  */
 
-public   class Stemmer {
+public class Stemmer {
     private char[] b;
-    private int i,     /* offset into b */
+    private int i, /* offset into b */
             i_end, /* offset to end of stemmed word */
             j, k;
     private static final int INC = 50;
@@ -32,23 +25,25 @@ public   class Stemmer {
         i = 0;
         i_end = 0;
     }
-    public void addString(String s){
-         add(s.toCharArray(), s.length());
+
+    public void addString(String s) {
+        add(s.toCharArray(), s.length());
     }
+
     /**
-     * Add a character to the word being stemmed.  When you are finished
+     * Add a character to the word being stemmed. When you are finished
      * adding characters, you can call stem(void) to stem the word.
      */
 
     public void add(char ch) {
         if (i == b.length) {
             char[] new_b = new char[i + INC];
-            for (int c = 0; c < i; c++) new_b[c] = b[c];
+            for (int c = 0; c < i; c++)
+                new_b[c] = b[c];
             b = new_b;
         }
         b[i++] = ch;
     }
-
 
     /**
      * Adds wLen characters to the word being stemmed contained in a portion
@@ -59,10 +54,12 @@ public   class Stemmer {
     public void add(char[] w, int wLen) {
         if (i + wLen >= b.length) {
             char[] new_b = new char[i + wLen + INC];
-            for (int c = 0; c < i; c++) new_b[c] = b[c];
+            for (int c = 0; c < i; c++)
+                new_b[c] = b[c];
             b = new_b;
         }
-        for (int c = 0; c < wLen; c++) b[i++] = w[c];
+        for (int c = 0; c < wLen; c++)
+            b[i++] = w[c];
     }
 
     /**
@@ -83,14 +80,14 @@ public   class Stemmer {
 
     /**
      * Returns a reference to a character buffer containing the results of
-     * the stemming process.  You also need to consult getResultLength()
+     * the stemming process. You also need to consult getResultLength()
      * to determine the length of the result.
      */
     public char[] getResultBuffer() {
         return b;
     }
 
-   /* cons(i) is true <=> b[i] is a consonant. */
+    /* cons(i) is true <=> b[i] is a consonant. */
 
     private final boolean cons(int i) {
         switch (b[i]) {
@@ -107,70 +104,84 @@ public   class Stemmer {
         }
     }
 
-   /* m() measures the number of consonant sequences between 0 and j. if c is
-      a consonant sequence and v a vowel sequence, and <..> indicates arbitrary
-      presence,
-         <c><v>       gives 0
-         <c>vc<v>     gives 1
-         <c>vcvc<v>   gives 2
-         <c>vcvcvc<v> gives 3
-         ....
-   */
+    /*
+     * m() measures the number of consonant sequences between 0 and j. if c is
+     * a consonant sequence and v a vowel sequence, and <..> indicates arbitrary
+     * presence,
+     * <c><v> gives 0
+     * <c>vc<v> gives 1
+     * <c>vcvc<v> gives 2
+     * <c>vcvcvc<v> gives 3
+     * ....
+     */
 
     private final int m() {
         int n = 0;
         int i = 0;
         while (true) {
-            if (i > j) return n;
-            if (!cons(i)) break;
+            if (i > j)
+                return n;
+            if (!cons(i))
+                break;
             i++;
         }
         i++;
         while (true) {
             while (true) {
-                if (i > j) return n;
-                if (cons(i)) break;
+                if (i > j)
+                    return n;
+                if (cons(i))
+                    break;
                 i++;
             }
             i++;
             n++;
             while (true) {
-                if (i > j) return n;
-                if (!cons(i)) break;
+                if (i > j)
+                    return n;
+                if (!cons(i))
+                    break;
                 i++;
             }
             i++;
         }
     }
 
-   /* vowelinstem() is true <=> 0,...j contains a vowel */
+    /* vowelinstem() is true <=> 0,...j contains a vowel */
 
     private final boolean vowelinstem() {
         int i;
-        for (i = 0; i <= j; i++) if (!cons(i)) return true;
+        for (i = 0; i <= j; i++)
+            if (!cons(i))
+                return true;
         return false;
     }
 
-   /* doublec(j) is true <=> j,(j-1) contain a double consonant. */
+    /* doublec(j) is true <=> j,(j-1) contain a double consonant. */
 
     private final boolean doublec(int j) {
-        if (j < 1) return false;
-        if (b[j] != b[j - 1]) return false;
+        if (j < 1)
+            return false;
+        if (b[j] != b[j - 1])
+            return false;
         return cons(j);
     }
 
-   /* cvc(i) is true <=> i-2,i-1,i has the form consonant - vowel - consonant
-      and also if the second c is not w,x or y. this is used when trying to
-      restore an e at the end of a short word. e.g.
-         cav(e), lov(e), hop(e), crim(e), but
-         snow, box, tray.
-   */
+    /*
+     * cvc(i) is true <=> i-2,i-1,i has the form consonant - vowel - consonant
+     * and also if the second c is not w,x or y. this is used when trying to
+     * restore an e at the end of a short word. e.g.
+     * cav(e), lov(e), hop(e), crim(e), but
+     * snow, box, tray.
+     */
 
     private final boolean cvc(int i) {
-        if (i < 2 || !cons(i) || cons(i - 1) || !cons(i - 2)) return false;
+        if (i < 2 || !cons(i) || cons(i - 1) || !cons(i - 2))
+            return false;
         {
             int ch = b[i];
-            if (ch == 'w' || ch == 'x' || ch == 'y') return false;
+            if (ch == 'w' || ch == 'x' || ch == 'y')
+                return false;
         }
         return true;
     }
@@ -178,81 +189,101 @@ public   class Stemmer {
     private final boolean ends(String s) {
         int l = s.length();
         int o = k - l + 1;
-        if (o < 0) return false;
-        for (int i = 0; i < l; i++) if (b[o + i] != s.charAt(i)) return false;
+        if (o < 0)
+            return false;
+        for (int i = 0; i < l; i++)
+            if (b[o + i] != s.charAt(i))
+                return false;
         j = k - l;
         return true;
     }
 
-   /* setto(s) sets (j+1),...k to the characters in the string s, readjusting
-      k. */
+    /*
+     * setto(s) sets (j+1),...k to the characters in the string s, readjusting
+     * k.
+     */
 
     private final void setto(String s) {
         int l = s.length();
         int o = j + 1;
-        for (int i = 0; i < l; i++) b[o + i] = s.charAt(i);
+        for (int i = 0; i < l; i++)
+            b[o + i] = s.charAt(i);
         k = j + l;
     }
 
-
-   /* r(s) is used further down. */
+    /* r(s) is used further down. */
 
     private final void r(String s) {
-        if (m() > 0) setto(s);
+        if (m() > 0)
+            setto(s);
     }
 
-   /* step1() gets rid of plurals and -ed or -ing. e.g.
-          caresses  ->  caress
-          ponies    ->  poni
-          ties      ->  ti
-          caress    ->  caress
-          cats      ->  cat
-          feed      ->  feed
-          agreed    ->  agree
-          disabled  ->  disable
-          matting   ->  mat
-          mating    ->  mate
-          meeting   ->  meet
-          milling   ->  mill
-          messing   ->  mess
-          meetings  ->  meet
-   */
+    /*
+     * step1() gets rid of plurals and -ed or -ing. e.g.
+     * caresses -> caress
+     * ponies -> poni
+     * ties -> ti
+     * caress -> caress
+     * cats -> cat
+     * feed -> feed
+     * agreed -> agree
+     * disabled -> disable
+     * matting -> mat
+     * mating -> mate
+     * meeting -> meet
+     * milling -> mill
+     * messing -> mess
+     * meetings -> meet
+     */
 
     private final void step1() {
         if (b[k] == 's') {
-            if (ends("sses")) k -= 2;
-            else if (ends("ies")) setto("i");
-            else if (b[k - 1] != 's') k--;
+            if (ends("sses"))
+                k -= 2;
+            else if (ends("ies"))
+                setto("i");
+            else if (b[k - 1] != 's')
+                k--;
         }
         if (ends("eed")) {
-            if (m() > 0) k--;
+            if (m() > 0)
+                k--;
         } else if ((ends("ed") || ends("ing")) && vowelinstem()) {
             k = j;
-            if (ends("at")) setto("ate");
-            else if (ends("bl")) setto("ble");
-            else if (ends("iz")) setto("ize");
+            if (ends("at"))
+                setto("ate");
+            else if (ends("bl"))
+                setto("ble");
+            else if (ends("iz"))
+                setto("ize");
             else if (doublec(k)) {
                 k--;
                 {
                     int ch = b[k];
-                    if (ch == 'l' || ch == 's' || ch == 'z') k++;
+                    if (ch == 'l' || ch == 's' || ch == 'z')
+                        k++;
                 }
-            } else if (m() == 1 && cvc(k)) setto("e");
+            } else if (m() == 1 && cvc(k))
+                setto("e");
         }
     }
 
-   /* step2() turns terminal y to i when there is another vowel in the stem. */
+    /* step2() turns terminal y to i when there is another vowel in the stem. */
 
     private final void step2() {
-        if (ends("y") && vowelinstem()) b[k] = 'i';
+        if (ends("y") && vowelinstem())
+            b[k] = 'i';
     }
 
-   /* step3() maps double suffices to single ones. so -ization ( = -ize plus
-      -ation) maps to -ize etc. note that the string before the suffix must give
-      m() > 0. */
+    /*
+     * step3() maps double suffices to single ones. so -ization ( = -ize plus
+     * -ation) maps to -ize etc. note that the string before the suffix must give
+     * m() > 0.
+     */
 
     private final void step3() {
-        if (k == 0) return; /* For Bug 1 */
+        if (k == 0)
+            return; /* For Bug 1 */
         switch (b[k - 1]) {
             case 'a':
                 if (ends("ational")) {
@@ -356,7 +387,7 @@ public   class Stemmer {
         }
     }
 
-   /* step4() deals with -ic-, -full, -ness etc. similar strategy to step3. */
+    /* step4() deals with -ic-, -full, -ness etc. similar strategy to step3. */
 
     private final void step4() {
         switch (b[k]) {
@@ -399,78 +430,101 @@ public   class Stemmer {
         }
     }
 
-   /* step5() takes off -ant, -ence etc., in context <c>vcvc<v>. */
+    /* step5() takes off -ant, -ence etc., in context <c>vcvc<v>. */
 
     private final void step5() {
-        if (k == 0) return; /* for Bug 1 */
+        if (k == 0)
+            return; /* for Bug 1 */
         switch (b[k - 1]) {
             case 'a':
-                if (ends("al")) break;
+                if (ends("al"))
+                    break;
                 return;
             case 'c':
-                if (ends("ance")) break;
-                if (ends("ence")) break;
+                if (ends("ance"))
+                    break;
+                if (ends("ence"))
+                    break;
                 return;
             case 'e':
-                if (ends("er")) break;
+                if (ends("er"))
+                    break;
                 return;
             case 'i':
-                if (ends("ic")) break;
+                if (ends("ic"))
+                    break;
                 return;
             case 'l':
-                if (ends("able")) break;
-                if (ends("ible")) break;
+                if (ends("able"))
+                    break;
+                if (ends("ible"))
+                    break;
                 return;
             case 'n':
-                if (ends("ant")) break;
-                if (ends("ement")) break;
-                if (ends("ment")) break;
-                    /* element etc. not stripped before the m */
-                if (ends("ent")) break;
+                if (ends("ant"))
+                    break;
+                if (ends("ement"))
+                    break;
+                if (ends("ment"))
+                    break;
+                /* element etc. not stripped before the m */
+                if (ends("ent"))
+                    break;
                 return;
             case 'o':
-                if (ends("ion") && j >= 0 && (b[j] == 's' || b[j] == 't')) break;
-                                    /* j >= 0 fixes Bug 2 */
-                if (ends("ou")) break;
+                if (ends("ion") && j >= 0 && (b[j] == 's' || b[j] == 't'))
+                    break;
+                /* j >= 0 fixes Bug 2 */
+                if (ends("ou"))
+                    break;
                 return;
-                    /* takes care of -ous */
+            /* takes care of -ous */
             case 's':
-                if (ends("ism")) break;
+                if (ends("ism"))
+                    break;
                 return;
             case 't':
-                if (ends("ate")) break;
-                if (ends("iti")) break;
+                if (ends("ate"))
+                    break;
+                if (ends("iti"))
+                    break;
                 return;
             case 'u':
-                if (ends("ous")) break;
+                if (ends("ous"))
+                    break;
                 return;
             case 'v':
-                if (ends("ive")) break;
+                if (ends("ive"))
+                    break;
                 return;
             case 'z':
-                if (ends("ize")) break;
+                if (ends("ize"))
+                    break;
                 return;
             default:
                 return;
         }
-        if (m() > 1) k = j;
+        if (m() > 1)
+            k = j;
     }
 
-   /* step6() removes a final -e if m() > 1. */
+    /* step6() removes a final -e if m() > 1. */
 
     private final void step6() {
         j = k;
         if (b[k] == 'e') {
             int a = m();
-            if (a > 1 || a == 1 && !cvc(k - 1)) k--;
+            if (a > 1 || a == 1 && !cvc(k - 1))
+                k--;
         }
-        if (b[k] == 'l' && doublec(k) && m() > 1) k--;
+        if (b[k] == 'l' && doublec(k) && m() > 1)
+            k--;
     }
 
     /**
      * Stem the word placed into the Stemmer buffer through calls to add().
      * Returns true if the stemming process resulted in a word different
-     * from the input.  You can retrieve the result with
+     * from the input. You can retrieve the result with
      * getResultLength()/getResultBuffer() or toString().
      */
     public void stem() {
@@ -488,7 +542,7 @@ public   class Stemmer {
     }
 
     /**
-     * Test program for demonstrating the Stemmer.  It reads text from a
+     * Test program for demonstrating the Stemmer. It reads text from a
      * a list of files, stems each word, and writes the result to standard
      * output. Note that the word stemmed is expected to be in lower case:
      * forcing lower case must be done outside the Stemmer class.
@@ -508,11 +562,13 @@ public   class Stemmer {
                             while (true) {
                                 ch = Character.toLowerCase((char) ch);
                                 w[j] = (char) ch;
-                                if (j < 500) j++;
+                                if (j < 500)
+                                    j++;
                                 ch = in.read();
                                 if (!Character.isLetter((char) ch)) {
-                                /* to test add(char ch) */
-                                    for (int c = 0; c < j; c++) s.add(w[c]);
+                                    /* to test add(char ch) */
+                                    for (int c = 0; c < j; c++)
+                                        s.add(w[c]);
                                     /* or, to test add(char[] w, int j) */
                                     /* s.add(w, j); */
                                     s.stem();
@@ -528,7 +584,8 @@ public   class Stemmer {
                                 }
                             }
                         }
-                        if (ch < 0) break;
+                        if (ch < 0)
+                            break;
                         System.out.print((char) ch);
                     }
                 } catch (IOException e) {

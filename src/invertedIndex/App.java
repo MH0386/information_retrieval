@@ -22,7 +22,7 @@ public class App {
         index.buildIndex();
         index.store("index");
         index.buildBiwordIndex();
-        // index.printDictionary();
+        index.printDictionary();
         // String test = "data should plain greatest comif";
         // System.out.println("Boolean Model result = \n" + index.find(test));
         // System.out.println("Boolean Model result = " + index.positionalIndex(test));

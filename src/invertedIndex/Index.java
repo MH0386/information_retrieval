@@ -56,7 +56,6 @@ public class Index {
         }
         System.out.println("------------------------------------------------------");
         System.out.println("*** Number of terms = " + index.size());
-
         try (PrintWriter writer = new PrintWriter(new FileWriter("output.txt"))) {
             Iterator it2 = index.entrySet().iterator();
             while (it2.hasNext()) {
@@ -77,7 +76,6 @@ public class Index {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     // -----------------------------------------------
