@@ -16,8 +16,8 @@ public class Index {
 
     // --------------------------------------------
     int num_files = 0;
+    String[] files;
     public Map<Integer, SourceRecord> sources; // store the doc_id and the file name.
-
     public HashMap<String, DictEntry> index; // THe inverted index
     // --------------------------------------------
 
@@ -81,7 +81,7 @@ public class Index {
     }
 
     // -----------------------------------------------
-    public void buildIndex(String[] files) {
+    public void buildIndex() {
         int file_id = 0;
         for (String file_name : files) {
             try (BufferedReader file = new BufferedReader(new FileReader(file_name))) {
@@ -149,33 +149,48 @@ public class Index {
     }
 
     // ----------------------------------------------------------------------------
+    @SuppressWarnings("unlikely-arg-type")
     public void buildBiwordIndex() {
-        List<String> WORDS = new ArrayList<>();
-        Iterator it = index.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry) it.next();
-            WORDS.add(pair.getKey().toString());
-        }
-        for (int i = 0; i < WORDS.size() - 1; i++) {
-            String word1 = WORDS.get(i);
-            String word2 = WORDS.get(i + 1);
-            String biword = word1 + "_" + word2;
-            if (!index.containsKey(biword)) {
-                index.put(biword, new DictEntry());
+        int file_id = 0;
+        for (String file_name : files) {
+            List<String> WORDS = new ArrayList<>();
+            try (BufferedReader file = new BufferedReader(new FileReader(file_name))) {
+                if (!sources.containsKey(file_name)) {
+                    sources.put(file_id, new SourceRecord(file_id, file_name, file_name, "notext"));
+                }
+                String ln;
+                int file_length = 0;
+                while ((ln = file.readLine()) != null) {
+                    String[] words = ln.split("\\W+");
+                    file_length += words.length;
+                    for (String word : words) {
+                        WORDS.add(word.toLowerCase());
+                    }
+                }
+                for (int i = 0; i < WORDS.size() - 1; i++) {
+                    String word = WORDS.get(i) + "_" + WORDS.get(i + 1);
+                    if (!index.containsKey(word)) {
+                        index.put(word, new DictEntry());
+                    }
+                    if (!index.get(word).postingListContains(file_id)) {
+                        index.get(word).doc_freq += 1;
+                        if (index.get(word).pList == null) {
+                            index.get(word).pList = new Posting(file_id);
+                            index.get(word).last = index.get(word).pList;
+                        } else {
+                            index.get(word).last.next = new Posting(file_id);
+                            index.get(word).last = index.get(word).last.next;
+                        }
+                    } else {
+                        index.get(word).last.dtf += 1;
+                    }
+                    index.get(word).term_freq += 1;
+                }
+                sources.get(file_id).length = file_length;
+            } catch (IOException e) {
+                System.out.println("File " + file_name + " not found. Skip it");
             }
-            Posting p1 = index.get(word1).pList;
-            Posting p2 = index.get(word2).pList;
-            Posting p_intersect = intersect(p1, p2);
-            // size of p_intersect
-            int size = 0;
-            Posting p = p_intersect;
-            while (p != null) {
-                size++;
-                p = p.next;
-            }
-            index.get(biword).doc_freq = size;
-            index.get(biword).pList = p_intersect;
-            // index.get(biword).last = p_intersect;
+            file_id++;
         }
     }
 
@@ -190,7 +205,6 @@ public class Index {
             posting.docId += 1;
             List<String> WORDS = new ArrayList<>();
             try (BufferedReader file = new BufferedReader(new FileReader("src\\collection\\p" + posting.docId))) {
-                // System.out.println("Doc ID: " + posting.docId);
                 String ln;
                 while ((ln = file.readLine()) != null) {
                     String[] words = ln.split("\\W+");
@@ -198,7 +212,6 @@ public class Index {
                         WORDS.add(word.toLowerCase());
                     }
                 }
-                // System.out.println(WORDS + "\n"+ WORDS.size());
                 for (int i = 0; i < WORDS.size(); i++) {
                     if (WORDS.get(i).equals(Word)) {
                         result.get(posting.docId - 1).add(i + 1);
