@@ -128,13 +128,15 @@ public class Index {
     // ----------------------------------------------------------------------------
     Posting intersect(Posting pL1, Posting pL2) {
         Posting answer = null;
-        // Posting last = null;
+        Posting last = null;
         while (pL1 != null && pL2 != null) {
             if (pL1.docId == pL2.docId) {
                 if (answer == null) {
                     answer = new Posting(pL1.docId, pL1.dtf + pL2.dtf);
+                    last = answer;
                 } else {
-                    answer.next = new Posting(pL1.docId, pL1.dtf + pL2.dtf);
+                    last.next = new Posting(pL1.docId, pL1.dtf + pL2.dtf);
+                    last = last.next;
                 }
                 pL1 = pL1.next;
                 pL2 = pL2.next;
@@ -236,11 +238,16 @@ public class Index {
         return false;
     }
 
-    public List<Integer> positionalIndex(String phrase) {
+    public String positionalIndex(String phrase) {
+        String result = "";
         String[] words = phrase.split("\\W+");
+        if (words.length < 2) {
+            return "Please enter at least two words\n";
+        }
         for (int i = 0; i < words.length; i++) {
             words[i] = words[i].toLowerCase();
         }
+        System.out.println("Searching for: " + Arrays.toString(words) + " with length: " + words.length);
         List<List<List<Integer>>> all_positions = new ArrayList<>();
         List<List<Integer>> pairs;
         List<Integer> common_doc = new ArrayList<>();
@@ -256,7 +263,7 @@ public class Index {
                 pairs.add(all_positions.get(i).get(j));
             }
             if (is_sequential_list(pairs.get(0), pairs.get(1))) {
-                common_doc.add(j + 1);
+                common_doc.add(j);
             }
             // System.out.println(pairs);
         }
@@ -266,7 +273,10 @@ public class Index {
         // System.out.println();
         // }
         // }
-        return common_doc;
+        for (int doc : common_doc) {
+            result += "\t" + doc + " - " + sources.get(doc).title + " - " + sources.get(doc).length + "\n";
+        }
+        return result;
     }
 
     // ----------------------------------------------------------------------------
@@ -332,7 +342,6 @@ public class Index {
             return true;
         }
         return false;
-
     }
 
     // ----------------------------------------------------------------------------
@@ -349,22 +358,25 @@ public class Index {
     public String find(String phrase) { // any number of terms non-optimized search
         String result = "";
         String[] words = phrase.split("\\W+");
+        for (int i = 0; i < words.length; i++) {
+            words[i] = words[i].toLowerCase();
+        }
         System.out.println("Searching for: " + Arrays.toString(words) + " with length: " + words.length);
         int len = words.length;
         Posting posting = null;
         try {
-            posting = index.get(words[0].toLowerCase()).pList;
+            posting = index.get(words[0]).pList;
         } catch (NullPointerException e) {
             return "No results found\n";
         }
         try {
-            int i = 1;
-            while (i < len) {
-                posting = intersect(posting, index.get(words[i].toLowerCase()).pList);
-                i++;
+            for (int i = 1; i < len; i++) {
+                posting = intersect(posting, index.get(words[i]).pList);
             }
         } catch (NullPointerException e) {
             return "No results found\n";
+        } catch (Exception e) {
+            System.out.println("Invalid Term");
         }
         while (posting != null) {
             result += "\t" + posting.docId + " - " + sources.get(posting.docId).title + " - "

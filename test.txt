@@ -20,8 +20,43 @@ Search:
               5 - src\collection\p6 - 2233
               6 - src\collection\p7 - 2221
     -----------------------------------------
-    
+    Input -> Reinforcement Learning
+    Output -> 0 - src\collection\p1 - 1435
+              1 - src\collection\p2 - 1401
+              2 - src\collection\p3 - 1936
+              3 - src\collection\p4 - 2014
+              4 - src\collection\p5 - 2099
+              5 - src\collection\p6 - 2233
+              6 - src\collection\p7 - 2221
+    -----------------------------------------
+    Input -> Welcome Back
+    Output -> 0 - src\collection\p1 - 1435
+              1 - src\collection\p2 - 1401
+              2 - src\collection\p3 - 1936
+              3 - src\collection\p4 - 2014
+              5 - src\collection\p6 - 2233
+              6 - src\collection\p7 - 2221
+    -----------------------------------------
+    Input -> AI Blog
+    Output -> 0 - src\collection\p1 - 1435
+              1 - src\collection\p2 - 1401
+              2 - src\collection\p3 - 1936
+              3 - src\collection\p4 - 2014
+              5 - src\collection\p6 - 2233
+    -----------------------------------------
 Positional:
+    Input -> data should plain greatest comif
+    Output -> []
+    -----------------------------------------
+    Input -> Reinforcement Learning
+    Output -> 0 - src\collection\p1 - 1435
+              1 - src\collection\p2 - 1401
+              2 - src\collection\p3 - 1936
+              3 - src\collection\p4 - 2014
+              4 - src\collection\p5 - 2099
+              5 - src\collection\p6 - 2233
+              6 - src\collection\p7 - 2221
+    -----------------------------------------
     Input -> data should plain greatest comif
     Output -> []
     -----------------------------------------

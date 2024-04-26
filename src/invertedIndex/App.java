@@ -30,25 +30,26 @@ public class App {
         // Search
         String phrase = "";
         do {
-            System.out.print("Print Search Phrase: ");
+            System.out.print("Search Phrase: ");
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             phrase = in.readLine();
             if (!phrase.isEmpty()) {
                 if (phrase.contains("\"")) {
                     phrase = phrase.replaceAll("\"(\\w+)\\s+(\\w+)\"", "$1_$2").toLowerCase();
                 }
-                    System.out.println("Sending: " + phrase);
-                System.out.println("Result = \n" + index.find(phrase));
+                System.out.println("Sending: " + phrase);
+                System.out.println("Result:\n" + index.find(phrase));
             }
         } while (!phrase.isEmpty());
 
         // Positional Search
         do {
-            System.out.println("Print search phrase: ");
+            System.out.print("Positional Search Phrase: ");
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             phrase = in.readLine();
             if (!phrase.isEmpty()) {
-                System.out.println("Result = \n" + index.positionalIndex(phrase));
+                System.out.println("Sending: " + phrase);
+                System.out.println("Result:\n" + index.positionalIndex(phrase));
             }
         } while (!phrase.isEmpty());
     }
