@@ -13,6 +13,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+
 public class Index {
 
     // --------------------------------------------
@@ -29,6 +33,29 @@ public class Index {
 
     public void setNum_files(int num_files) {
         this.num_files = num_files;
+    }
+
+    // ---------------------------------------------
+    public void web_crawler(String url) {
+        try {
+            Document doc = Jsoup
+                    .connect(url)
+                    .userAgent(
+                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
+                    .get();
+            Element DOC_PAGE = doc.body();
+           String PAGE_TEXT = DOC_PAGE.text();
+            // preprocess the text
+            PAGE_TEXT = PAGE_TEXT.replaceAll("[^a-zA-Z0-9 .]", "");
+            // save the text to a file
+            String filename = "p8";
+            filename = "src\\collection\\" + filename ;
+            Writer output = new PrintWriter(filename, "UTF-8");
+            output.write(PAGE_TEXT);
+            output.close();
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
     }
 
     // ---------------------------------------------
