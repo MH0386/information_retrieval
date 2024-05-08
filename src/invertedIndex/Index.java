@@ -16,6 +16,7 @@ import java.util.Map;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 public class Index {
 
@@ -44,14 +45,17 @@ public class Index {
                             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
                     .get();
             Element DOC_PAGE = doc.body();
-           String PAGE_TEXT = DOC_PAGE.text();
-            // preprocess the text
-            PAGE_TEXT = PAGE_TEXT.replaceAll("[^a-zA-Z0-9 .]", "");
+            String PAGE_TITLE = doc.title();
+            String PAGE_TEXT = DOC_PAGE.text();
+            // // preprocess the text
+            // PAGE_TEXT = PAGE_TEXT.replaceAll("[^a-zA-Z0-9 .]", "");
+            // PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d)", "\n$1 ");
+            String TEXT = PAGE_TITLE + "\n" + PAGE_TEXT;
             // save the text to a file
             String filename = "p8";
             filename = "src\\collection\\" + filename ;
             Writer output = new PrintWriter(filename, "UTF-8");
-            output.write(PAGE_TEXT);
+            output.write(TEXT);
             output.close();
         } catch (IOException e) {
             System.err.println("Error: " + e.getMessage());
