@@ -19,7 +19,7 @@ public class App {
         }
         index.num_files = fileList.length;
         index.files = fileList;
-        index.web_crawler("https://en.wikipedia.org/wiki/List_of_pharaohs");
+        //index.web_crawler("https://en.wikipedia.org/wiki/List_of_pharaohs");
         index.buildIndex();
         index.store("index");
         index.buildBiwordIndex();

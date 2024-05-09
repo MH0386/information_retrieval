@@ -36,6 +36,32 @@ public class Index {
         this.num_files = num_files;
     }
 
+    public void top_k(String phrase, int k) {
+        String result = "";
+        String[] terms = phrase.split("\\W+");
+        int len = words.length;
+        double scores[] = new double[N];
+        // N= collection size (10 files N =10)
+        // 1 float Scores[N] = 0
+        // 2 Initialize Length[N]
+        // 3 for each query term t for (String term : terms) {
+        // 4 do calculate w t, q and fetch postings list for t term =
+        // term.toLowerCase();
+        // int tdf = index.get(term).doc_freq; // number of documents that contains the
+        // term int ttf = index.get(term).term_freq;
+        // 4.a compute idf idf = log10(N / (double) tdf);
+        // can be computed earlier
+        // 5 for each pair(doc_id, dtf ) in postings list
+        // 6 add the term score for (term/doc) to score of each
+        // docscores[p.docId] += (1 + log10((double) p.dtf)) * idf); Normalize for the
+        // length of the doc
+        // 7 Read the array Length[d]
+        // 8 for each d
+        // 9 do
+        // Scores[d] = Scores[d]/Length[d]
+        // 10 return Top K components of Scores[]
+    }
+
     // ---------------------------------------------
     public void web_crawler(String url) {
         int doc_id = 8;
