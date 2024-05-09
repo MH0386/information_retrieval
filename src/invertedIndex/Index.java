@@ -37,48 +37,55 @@ public class Index {
     }
 
     // ---------------------------------------------
-    public void web_crawler(String url) throws IOException {
+    public void web_crawler(String url) {
         int doc_id = 8;
-        List<String> links = new ArrayList<>();
-        Document doc = Jsoup
-                .connect(url)
-                .userAgent(
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
-                .get();
-        Element DOC_PAGE = doc.body();
-        Elements all_links = DOC_PAGE.select("a[href]");
-        for (Element link : all_links) {
-            links.add(link.attr("abs:href"));
-            try {
-                Document doc_link = Jsoup
-                        .connect(link.attr(
-                                "abs:href"))
-                        .userAgent(
-                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
-                        .get();
-                Element PAGE = doc_link.body();
-                String PAGE_TITLE = doc_link.title();
-                String PAGE_TEXT = PAGE.text();
-                // preprocess the text
-                PAGE_TEXT = PAGE_TEXT.replaceAll("[^a-zA-Z0-9 .]", "");
-                PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d\\.\\d)", "\n$1 ");
-                PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d)", "\n$1 ");
-                PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d)\\s(\\.\\d)", "$1$2");
-                PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2})([a-zA-Z])", "\n$1 $2");
-                String TEXT = PAGE_TITLE + "\n" + PAGE_TEXT;
-                // save the text to a file
-                String filename = "p" + doc_id;
-                filename = "src\\collection\\" + filename;
-                try (PrintWriter output = new PrintWriter(filename, "UTF-8")) {
-                    output.write(TEXT);
-                } catch (Exception e) {
+        Document doc;
+        Elements all_links = null;
+        try {
+            doc = Jsoup
+                    .connect(url)
+                    .userAgent(
+                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
+                    .get();
+            Element DOC_PAGE = doc.body();
+            all_links = DOC_PAGE.select("a[href]");
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+        if (all_links != null) {
+            for (Element link : all_links) {
+                try {
+                    Document doc_link = Jsoup
+                            .connect(link.attr("abs:href"))
+                            .userAgent(
+                                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
+                            .get();
+                    Element PAGE = doc_link.body();
+                    String PAGE_TITLE = doc_link.title();
+                    String PAGE_TEXT = PAGE.text();
+                    // preprocess the text
+                    PAGE_TEXT = PAGE_TEXT.replaceAll("[^a-zA-Z0-9 .]", "");
+                    PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d\\.\\d)", "\n$1 ");
+                    PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d)", "\n$1 ");
+                    PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d)\\s(\\.\\d)", "$1$2");
+                    PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2})([a-zA-Z])", "\n$1 $2");
+                    String TEXT = PAGE_TITLE + "\n" + PAGE_TEXT;
+                    // save the text to a file
+                    String filename = "p" + doc_id;
+                    filename = "src\\collection\\" + filename;
+                    try (PrintWriter output = new PrintWriter(filename, "UTF-8")) {
+                        output.write(TEXT);
+                        doc_id++;
+                    } catch (Exception e) {
+                        System.err.println("Error: " + e.getMessage());
+                    }
+                } catch (IOException e) {
                     System.err.println("Error: " + e.getMessage());
                 }
-            } catch (IOException e) {
-                System.err.println("Error: " + e.getMessage());
             }
-            doc_id++;
+
         }
+        System.out.println("Total number of files: " + doc_id);
     }
 
     // ---------------------------------------------
