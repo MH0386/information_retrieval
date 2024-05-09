@@ -39,15 +39,15 @@ public class Index {
     // ---------------------------------------------
     public void web_crawler(String url) {
         int doc_id = 8;
-        Document doc;
+        Document doc_main;
         Elements all_links = null;
         try {
-            doc = Jsoup
+            doc_main = Jsoup
                     .connect(url)
                     .userAgent(
                             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
                     .get();
-            Element DOC_PAGE = doc.body();
+            Element DOC_PAGE = doc_main.body();
             all_links = DOC_PAGE.select("a[href]");
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
@@ -73,24 +73,25 @@ public class Index {
                     // save the text to a file
                     String filename = "p" + doc_id;
                     filename = "src\\collection\\" + filename;
-                    try (PrintWriter output = new PrintWriter(filename, "UTF-8")) {
+                    try (PrintWriter output = new PrintWriter(new FileWriter(filename))) {
                         output.write(TEXT);
                         doc_id++;
                     } catch (Exception e) {
                         System.err.println("Error: " + e.getMessage());
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     System.err.println("Error: " + e.getMessage());
                 }
             }
 
+        } else {
+            System.err.println("Error: Main Link can not be reached");
         }
-        System.out.println("Total number of files: " + doc_id);
+        System.out.println("Total number of files: " + doc_id + "\n\n");
     }
 
     // ---------------------------------------------
     public void printPostingList(Posting p) {
-        // Iterator<Integer> it2 = hset.iterator();
         System.out.print("[");
         while (p != null) {
             System.out.print(p.docId);
