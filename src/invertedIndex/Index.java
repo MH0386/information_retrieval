@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -12,7 +13,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
+import static java.lang.Math.log10;
+import static java.lang.Math.sqrt;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -25,6 +27,7 @@ public class Index {
     String[] files;
     public Map<Integer, SourceRecord> sources; // store the doc_id and the file name.
     public HashMap<String, DictEntry> index; // THe inverted index
+    SortedScore sortedScore;
     // --------------------------------------------
 
     public Index() {
@@ -37,29 +40,59 @@ public class Index {
     }
 
     public void top_k(String phrase, int k) {
-        String result = "";
-        String[] terms = phrase.split("\\W+");
-        int len = words.length;
-        double scores[] = new double[N];
-        // N= collection size (10 files N =10)
-        // 1 float Scores[N] = 0
-        // 2 Initialize Length[N]
-        // 3 for each query term t for (String term : terms) {
-        // 4 do calculate w t, q and fetch postings list for t term =
-        // term.toLowerCase();
-        // int tdf = index.get(term).doc_freq; // number of documents that contains the
-        // term int ttf = index.get(term).term_freq;
-        // 4.a compute idf idf = log10(N / (double) tdf);
-        // can be computed earlier
-        // 5 for each pair(doc_id, dtf ) in postings list
-        // 6 add the term score for (term/doc) to score of each
-        // docscores[p.docId] += (1 + log10((double) p.dtf)) * idf); Normalize for the
-        // length of the doc
-        // 7 Read the array Length[d]
-        // 8 for each d
-        // 9 do
-        // Scores[d] = Scores[d]/Length[d]
-        // 10 return Top K components of Scores[]
+    //     System.out.println("------------------------- top_k -------------------------");
+
+    //     String result = "";
+    //     String[] words = phrase.split("\\W+");
+    //     int len = words.length;
+    //     sortedScore = new SortedScore();
+
+    //     double scores[] = new double[num_files];
+    //     double qwt[] = new double[len];
+    //     double qnz[] = new double[len];
+
+    //     // 1 float Scores[N] = 0
+    //     // 2 Initialize Length[N]
+    //     // 3 for each query term t
+    //     for (String term : words) {
+    //     // 4 do calculate w t, q and fetch postings list for t
+    //             term = term.toLowerCase();
+    //     double tdf = index.get(term).doc_freq; // number of documents that contains the term
+    //     double ttf = index.get(term).term_freq; 
+    //     // 4.a compute idf
+    //    double idf = log10(num_files / (double) tdf); // can be computed earlier
+    //     // 5 for each pair(doc_id, dtf ) in postings list
+    //     Posting p = index.get(term).pList;
+    //     while(p != null){}
+    //         // 6 add the term score for (term/doc) to score of each doc
+    //         scores[p.docId] += (1 + log10((double) p.dtf)) * idf;
+    //         // Normalize for the length of the doc
+    //         // 7 Read the array Length[d]
+    //         // 8 for each d
+    //         // 9 do Scores[d] = Scores[d]/Length[d
+    //     // Normalize for the length of the doc
+    //     // 7 Read the array Length[d]
+    //     // 8 for each d
+    //     // 9 do Scores[d] = Scores[d]/Length[d]
+    //     // 10 return Top K components of Scores[]
+
+    //     return result;
+    }
+
+    public void searchLoop() {
+        String phrase;
+        do {
+            System.out.println("Print search phrase: ");
+            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+            try {
+                phrase = in.readLine();
+                // top_k(phrase);
+            } catch (Exception e) {
+                e.printStackTrace();
+                break;
+            }
+        } while (!phrase.isEmpty());
+
     }
 
     // ---------------------------------------------
