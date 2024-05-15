@@ -9,12 +9,12 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import static java.lang.Math.log10;
-import static java.lang.Math.sqrt;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -39,44 +39,58 @@ public class Index {
         this.num_files = num_files;
     }
 
+    public Map<String, Double> computeTfIdf(String document) {
+        Map<String, Double> tfIdf = new HashMap<>();
+        String[] terms = document.toLowerCase().split("\\W+");
+
+        for (String term : terms) {
+            term = term.toLowerCase();
+            double tf = index.get(term).term_freq;
+            double tdf = index.get(term).doc_freq;
+            double idf = Math.log10(num_files / tdf);
+            tfIdf.put
+        }
+        return tfIdf;
+    }
+
     public void top_k(String phrase, int k) {
-    //     System.out.println("------------------------- top_k -------------------------");
+        System.out.println("------------------------- top_k -------------------------");
 
-    //     String result = "";
-    //     String[] words = phrase.split("\\W+");
-    //     int len = words.length;
-    //     sortedScore = new SortedScore();
+        String result = "";
+        String[] words = phrase.split("\\W+");
+        int len = words.length;
+        sortedScore = new SortedScore();
 
-    //     double scores[] = new double[num_files];
-    //     double qwt[] = new double[len];
-    //     double qnz[] = new double[len];
+        double scores[] = new double[num_files];
+        double qwt[] = new double[len];
+        double qnz[] = new double[len];
 
-    //     // 1 float Scores[N] = 0
-    //     // 2 Initialize Length[N]
-    //     // 3 for each query term t
-    //     for (String term : words) {
-    //     // 4 do calculate w t, q and fetch postings list for t
-    //             term = term.toLowerCase();
-    //     double tdf = index.get(term).doc_freq; // number of documents that contains the term
-    //     double ttf = index.get(term).term_freq; 
-    //     // 4.a compute idf
-    //    double idf = log10(num_files / (double) tdf); // can be computed earlier
-    //     // 5 for each pair(doc_id, dtf ) in postings list
-    //     Posting p = index.get(term).pList;
-    //     while(p != null){}
-    //         // 6 add the term score for (term/doc) to score of each doc
-    //         scores[p.docId] += (1 + log10((double) p.dtf)) * idf;
-    //         // Normalize for the length of the doc
-    //         // 7 Read the array Length[d]
-    //         // 8 for each d
-    //         // 9 do Scores[d] = Scores[d]/Length[d
-    //     // Normalize for the length of the doc
-    //     // 7 Read the array Length[d]
-    //     // 8 for each d
-    //     // 9 do Scores[d] = Scores[d]/Length[d]
-    //     // 10 return Top K components of Scores[]
+        // // 1 float Scores[N] = 0
+        // // 2 Initialize Length[N]
+        // // 3 for each query term t
+        // for (String term : words) {
+        // // 4 do calculate w t, q and fetch postings list for t
+        // term = term.toLowerCase();
+        // double tdf = index.get(term).doc_freq; // number of documents that contains the term
+        // double ttf = index.get(term).term_freq;
+        // // 4.a compute idf
+        // double idf = log10(num_files / (double) tdf); // can be computed earlier
+        // // 5 for each pair(doc_id, dtf ) in postings list
+        // Posting p = index.get(term).pList;
+        // while(p != null){}
+        // // 6 add the term score for (term/doc) to score of each doc
+        // scores[p.docId] += (1 + log10((double) p.dtf)) * idf;
+        // // Normalize for the length of the doc
+        // // 7 Read the array Length[d]
+        // // 8 for each d
+        // // 9 do Scores[d] = Scores[d]/Length[d
+        // // Normalize for the length of the doc
+        // // 7 Read the array Length[d]
+        // // 8 for each d
+        // // 9 do Scores[d] = Scores[d]/Length[d]
+        // // 10 return Top K components of Scores[]
 
-    //     return result;
+        // return result;
     }
 
     public void searchLoop() {
