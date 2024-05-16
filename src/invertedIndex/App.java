@@ -18,11 +18,13 @@ public class App {
         index.num_files = fileList.length;
         index.files = fileList;
         // index.web_crawler("https://en.wikipedia.org/wiki/List_of_pharaohs");
-        // index.buildIndex();
-        // index.store("index");
+        index.buildIndex();
+        index.store("index");
         // index.buildBiwordIndex();
-        index.load("index");
+        // index.load("index");
         index.get_all_unique_words();
+        System.out.println("Number of unique words: " + index.all_unique_words.length);
+        System.out.println("Number of files: " + index.num_files);
         // index.printDictionary();
         // String test = "data should plain greatest comif";
         // System.out.println("Boolean Model result = \n" + index.find(test));

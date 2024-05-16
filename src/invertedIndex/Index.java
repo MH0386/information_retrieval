@@ -41,54 +41,81 @@ public class Index {
         this.num_files = num_files;
     }
 
-    public double computeCosineSimilarity(Map<String, Double> vector1, Map<String, Double> vector2) {
-        Set<String> allTerms = new HashSet<>();
-        allTerms.addAll(vector1.keySet());
-        allTerms.addAll(vector2.keySet());
-
+    public double computeCosineSimilarity(double[] vector1, double[] vector2) {
         double dotProduct = 0.0;
-        double norm1 = 0.0;
-        double norm2 = 0.0;
-
-        for (String term : allTerms) {
-            double v1 = vector1.getOrDefault(term, 0.0);
-            double v2 = vector2.getOrDefault(term, 0.0);
-
-            dotProduct += v1 * v2;
-            norm1 += v1 * v2;
-            norm2 += v2 * v2;
+        double normA = 0.0;
+        double normB = 0.0;
+        int len = vector1.length;
+        for (int i = 0; i < len; i++) {
+            dotProduct += vector1[i] * vector2[i];
+            normA += Math.pow(vector1[i], 2);
+            normB += Math.pow(vector2[i], 2);
         }
-
-        return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
+        return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 
     public double[] compute_vectors(String document) {
         String[] terms = document.toLowerCase().split("\\W+");
-        Arrays.sort(terms);
+        // System.out.println("terms length: " + terms.length);
+        Set<String> termSet = new HashSet<>(Arrays.asList(terms));
         int len = all_unique_words.length;
-        double cosine_normalize_value = 0;
-        double[] tfs = new double[len];
-        double[] idfs = new double[len];
-        double[] tdfs = new double[len];
+        double cosine_normalize_value = 0.0;
         double[] tf_idfs = new double[len];
         double[] vectors = new double[len];
 
         for (int i = 0; i < len; i++) {
-            tfs[i] = 1 + Math.log10(index.get(terms[i]).term_freq);
-            tdfs[i] = index.get(terms[i]).doc_freq;
-            idfs[i] = Math.log10(num_files / tdfs[i]);
-            tf_idfs[i] = tfs[i] * idfs[i];
+            if (termSet.contains(all_unique_words[i])) {
+                double tf = 1 + Math.log10(index.get(all_unique_words[i]).term_freq + 0.01);
+                double idf = Math.log10((num_files / index.get(all_unique_words[i]).doc_freq) + 0.01);
+                tf_idfs[i] = tf * idf;
+                // System.out.println(all_unique_words[i] + " " + tf_idfs[i]);
+            } else {
+                tf_idfs[i] = 0;
+            }
         }
 
         for (int i = 0; i < len; i++) {
-            cosine_normalize_value += tf_idfs[i] * tf_idfs[i];
+            cosine_normalize_value += Math.pow(tf_idfs[i], 2);
         }
         cosine_normalize_value = Math.sqrt(cosine_normalize_value);
 
+        // System.out.println("cosine_normalize_value: " + cosine_normalize_value);
+        // System.out.println("tf_idfs: " + Arrays.toString(tf_idfs));
         for (int i = 0; i < len; i++) {
             vectors[i] = tf_idfs[i] / cosine_normalize_value;
         }
         return vectors;
+    }
+
+    public String get_text_from_doc(int doc_id) {
+        if (sources.containsKey(doc_id)) {
+            String file = sources.get(doc_id).URL;
+            String text = "";
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    text += line + "\n";
+                }
+            } catch (IOException e) {
+                System.out.println("Error reading file: " + file);
+            }
+            return text;
+        } else {
+            return "Document not found";
+        }
+    }
+
+    public double[] get_softmax(double[] scores) {
+        double[] softmax = new double[scores.length];
+        double sum = 0;
+        for (int i = 0; i < scores.length; i++) {
+            softmax[i] = Math.exp(scores[i]);
+            sum += softmax[i];
+        }
+        for (int i = 0; i < scores.length; i++) {
+            softmax[i] /= sum;
+        }
+        return softmax;
     }
 
     public void get_all_unique_words() {
@@ -97,42 +124,32 @@ public class Index {
             allTerms.add(term);
         }
         all_unique_words = allTerms.toArray(new String[0]);
-        Arrays.sort(all_unique_words);
+        // Arrays.sort(all_unique_words);
     }
 
     public void top_k(String phrase, int k) {
-        // getMostSimilarDocument
-        System.out.println("------------------------- top_k -------------------------");
-        int len = all_unique_words.length;
-        String[] terms = phrase.split("\\W+");
-        double[] scores = new double[num_files];
-        double[] tfs = new double[len];
-        double[] idfs = new double[len];
-        double[] tdfs = new double[len];
-        double[] tf_idfs = new double[len];
-        double[] vectors = new double[len];
+        System.out.println("\n\n------------------------- top_k -------------------------");
+        System.out.println("Search phrase: " + phrase);
+        String[] words = phrase.split("\\W+");
+        Arrays.sort(words);
+
+        double[] query_vector = compute_vectors(phrase);
+        double[] cosine_similarity = new double[num_files];
+        for (int i = 0; i < num_files; i++) {
+            String document = get_text_from_doc(i);
+            double[] document_vector = compute_vectors(document);
+            cosine_similarity[i] = computeCosineSimilarity(query_vector, document_vector);
+        }
         sortedScore = new SortedScore();
-
-        for (int i = 0; i < len; i++) {
-            tfs[i] = 1 + Math.log10(index.get(all_unique_words[i]).term_freq);
-            tdfs[i] = index.get(all_unique_words[i]).doc_freq;
-            idfs[i] = Math.log10(num_files / tdfs[i]);
-            tf_idfs[i] = tfs[i] * idfs[i];
+        
+        // cosine_similarity = get_softmax(cosine_similarity);
+        for (int i = 0; i < num_files; i++) {
+            sortedScore.insertScoreRecord(cosine_similarity[i], sources.get(i).URL, sources.get(i).title,
+                    sources.get(i).text);
         }
-
-        double cosine_normalize_value = 0;
-        for (int i = 0; i < len; i++) {
-            cosine_normalize_value += tf_idfs[i] * tf_idfs[i];
-        }
-        cosine_normalize_value = Math.sqrt(cosine_normalize_value);
-
-        for (int i = 0; i < len; i++) {
-            vectors[i] = tf_idfs[i] / cosine_normalize_value;
-        }
-
         sortedScore.printScores();
+        // System.out.println(Arrays.toString(cosine_similarity));
         System.out.println("------------------------- top_k -------------------------");
-        // return result;
     }
 
     public void searchLoop() {
