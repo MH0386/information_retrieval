@@ -28,7 +28,7 @@ public class Index {
     String[] files;
     public Map<Integer, SourceRecord> sources; // store the doc_id and the file name.
     public HashMap<String, DictEntry> index; // THe inverted index
-    List<Map<String, Double>> vectors;
+    String[] all_unique_words;
     SortedScore sortedScore;
     // --------------------------------------------
 
@@ -62,105 +62,76 @@ public class Index {
         return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
     }
 
-    public Map<String, Double> computeTfIdf(String document) {
-        Map<String, Double> tfIdf = new HashMap<>();
+    public double[] compute_vectors(String document) {
         String[] terms = document.toLowerCase().split("\\W+");
+        Arrays.sort(terms);
+        int len = all_unique_words.length;
+        double cosine_normalize_value = 0;
+        double[] tfs = new double[len];
+        double[] idfs = new double[len];
+        double[] tdfs = new double[len];
+        double[] tf_idfs = new double[len];
+        double[] vectors = new double[len];
 
-        for (String term : terms) {
-            term = term.toLowerCase();
-            double tf = index.get(term).term_freq;
-            double tdf = index.get(term).doc_freq;
-            double idf = Math.log10(num_files / tdf);
-            tfIdf.put(term, tf * idf);
+        for (int i = 0; i < len; i++) {
+            tfs[i] = 1 + Math.log10(index.get(terms[i]).term_freq);
+            tdfs[i] = index.get(terms[i]).doc_freq;
+            idfs[i] = Math.log10(num_files / tdfs[i]);
+            tf_idfs[i] = tfs[i] * idfs[i];
         }
-        return tfIdf;
+
+        for (int i = 0; i < len; i++) {
+            cosine_normalize_value += tf_idfs[i] * tf_idfs[i];
+        }
+        cosine_normalize_value = Math.sqrt(cosine_normalize_value);
+
+        for (int i = 0; i < len; i++) {
+            vectors[i] = tf_idfs[i] / cosine_normalize_value;
+        }
+        return vectors;
     }
-    public String[] get_all_unique_words(){
+
+    public void get_all_unique_words() {
         Set<String> allTerms = new HashSet<>();
         for (String term : index.keySet()) {
             allTerms.add(term);
         }
-        return allTerms.toArray(new String[allTerms.size()]);
+        all_unique_words = allTerms.toArray(new String[0]);
+        Arrays.sort(all_unique_words);
     }
 
     public void top_k(String phrase, int k) {
         // getMostSimilarDocument
         System.out.println("------------------------- top_k -------------------------");
-        String[] all_unique_words = get_all_unique_words();
+        int len = all_unique_words.length;
         String[] terms = phrase.split("\\W+");
         double[] scores = new double[num_files];
-        int len = all_unique_words.length;
-        sortedScore = new SortedScore();
         double[] tfs = new double[len];
         double[] idfs = new double[len];
         double[] tdfs = new double[len];
+        double[] tf_idfs = new double[len];
+        double[] vectors = new double[len];
+        sortedScore = new SortedScore();
 
         for (int i = 0; i < len; i++) {
-            tfs[i] = index.get(all_unique_words[i]).term_freq;
+            tfs[i] = 1 + Math.log10(index.get(all_unique_words[i]).term_freq);
             tdfs[i] = index.get(all_unique_words[i]).doc_freq;
             idfs[i] = Math.log10(num_files / tdfs[i]);
-        }
-        
-        double qnorm = 0;
-        for (int i = 0; i < len; i++) {
-            qnorm += qwt[i] * qwt[i];
-        }
-        qnorm = Math.sqrt(qnorm);
-
-        for (int i = 0; i < len; i++) {
-            qwt[i] = qwt[i] / qnorm;
+            tf_idfs[i] = tfs[i] * idfs[i];
         }
 
-        for (int i = 0; i < num_files; i++) {
-            scores[i] = 0;
+        double cosine_normalize_value = 0;
+        for (int i = 0; i < len; i++) {
+            cosine_normalize_value += tf_idfs[i] * tf_idfs[i];
         }
+        cosine_normalize_value = Math.sqrt(cosine_normalize_value);
 
         for (int i = 0; i < len; i++) {
-            if (index.containsKey(terms[i])) {
-                Posting p = index.get(terms[i]).pList;
-                while (p != null) {
-                    scores[p.docId] += (1 + Math.log10(p.dtf)) * Math.log10(num_files / index.get(terms[i]).doc_freq);
-                    p = p.next;
-                }
-            }
+            vectors[i] = tf_idfs[i] / cosine_normalize_value;
         }
 
-        for (int i = 0; i < num_files; i++) {
-            if (scores[i] > 0) {
-                double norm = sources.get(i).norm;
-                scores[i] = scores[i] / norm;
-                sortedScore.insertScoreRecord(scores[i], sources.get(i).URL, sources.get(i).title, sources.get(i).text);
-            }
-        }
         sortedScore.printScores();
         System.out.println("------------------------- top_k -------------------------");
-
-        // // 1 float Scores[N] = 0
-        // // 2 Initialize Length[N]
-        // // 3 for each query term t
-        // for (String term : words) {
-        // // 4 do calculate w t, q and fetch postings list for t
-        // term = term.toLowerCase();
-        // double tdf = index.get(term).doc_freq; // number of documents that contains
-        // the term
-        // double ttf = index.get(term).term_freq;
-        // // 4.a compute idf
-        // double idf = log10(num_files / (double) tdf); // can be computed earlier
-        // // 5 for each pair(doc_id, dtf ) in postings list
-        // Posting p = index.get(term).pList;
-        // while(p != null){}
-        // // 6 add the term score for (term/doc) to score of each doc
-        // scores[p.docId] += (1 + log10((double) p.dtf)) * idf;
-        // // Normalize for the length of the doc
-        // // 7 Read the array Length[d]
-        // // 8 for each d
-        // // 9 do Scores[d] = Scores[d]/Length[d
-        // // Normalize for the length of the doc
-        // // 7 Read the array Length[d]
-        // // 8 for each d
-        // // 9 do Scores[d] = Scores[d]/Length[d]
-        // // 10 return Top K components of Scores[]
-
         // return result;
     }
 

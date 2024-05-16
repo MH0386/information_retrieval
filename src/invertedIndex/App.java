@@ -22,6 +22,7 @@ public class App {
         // index.store("index");
         // index.buildBiwordIndex();
         index.load("index");
+        index.get_all_unique_words();
         // index.printDictionary();
         // String test = "data should plain greatest comif";
         // System.out.println("Boolean Model result = \n" + index.find(test));
