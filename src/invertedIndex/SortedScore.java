@@ -49,7 +49,7 @@ public class SortedScore {
             if (i > 25) {
                 return scores;
             }
-            String str = "score = " + String.format("%.3f", p.score) + " \t " + p.title + "  \t\t" + p.URL;
+            String str = "score = " + p.score + " \t " + p.title + "  \t\t" + p.URL;
             scores += str + "<br>\n";
             System.out.println(str);
             p = p.next;
