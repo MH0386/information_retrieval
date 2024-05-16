@@ -9,11 +9,12 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -27,6 +28,7 @@ public class Index {
     String[] files;
     public Map<Integer, SourceRecord> sources; // store the doc_id and the file name.
     public HashMap<String, DictEntry> index; // THe inverted index
+    List<Map<String, Double>> vectors;
     SortedScore sortedScore;
     // --------------------------------------------
 
@@ -39,6 +41,27 @@ public class Index {
         this.num_files = num_files;
     }
 
+    public double computeCosineSimilarity(Map<String, Double> vector1, Map<String, Double> vector2) {
+        Set<String> allTerms = new HashSet<>();
+        allTerms.addAll(vector1.keySet());
+        allTerms.addAll(vector2.keySet());
+
+        double dotProduct = 0.0;
+        double norm1 = 0.0;
+        double norm2 = 0.0;
+
+        for (String term : allTerms) {
+            double v1 = vector1.getOrDefault(term, 0.0);
+            double v2 = vector2.getOrDefault(term, 0.0);
+
+            dotProduct += v1 * v2;
+            norm1 += v1 * v2;
+            norm2 += v2 * v2;
+        }
+
+        return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
+    }
+
     public Map<String, Double> computeTfIdf(String document) {
         Map<String, Double> tfIdf = new HashMap<>();
         String[] terms = document.toLowerCase().split("\\W+");
@@ -48,22 +71,69 @@ public class Index {
             double tf = index.get(term).term_freq;
             double tdf = index.get(term).doc_freq;
             double idf = Math.log10(num_files / tdf);
-            tfIdf.put
+            tfIdf.put(term, tf * idf);
         }
         return tfIdf;
     }
+    public String[] get_all_unique_words(){
+        Set<String> allTerms = new HashSet<>();
+        for (String term : index.keySet()) {
+            allTerms.add(term);
+        }
+        return allTerms.toArray(new String[allTerms.size()]);
+    }
 
     public void top_k(String phrase, int k) {
+        // getMostSimilarDocument
         System.out.println("------------------------- top_k -------------------------");
-
-        String result = "";
-        String[] words = phrase.split("\\W+");
-        int len = words.length;
+        String[] all_unique_words = get_all_unique_words();
+        String[] terms = phrase.split("\\W+");
+        double[] scores = new double[num_files];
+        int len = all_unique_words.length;
         sortedScore = new SortedScore();
+        double[] tfs = new double[len];
+        double[] idfs = new double[len];
+        double[] tdfs = new double[len];
 
-        double scores[] = new double[num_files];
-        double qwt[] = new double[len];
-        double qnz[] = new double[len];
+        for (int i = 0; i < len; i++) {
+            tfs[i] = index.get(all_unique_words[i]).term_freq;
+            tdfs[i] = index.get(all_unique_words[i]).doc_freq;
+            idfs[i] = Math.log10(num_files / tdfs[i]);
+        }
+        
+        double qnorm = 0;
+        for (int i = 0; i < len; i++) {
+            qnorm += qwt[i] * qwt[i];
+        }
+        qnorm = Math.sqrt(qnorm);
+
+        for (int i = 0; i < len; i++) {
+            qwt[i] = qwt[i] / qnorm;
+        }
+
+        for (int i = 0; i < num_files; i++) {
+            scores[i] = 0;
+        }
+
+        for (int i = 0; i < len; i++) {
+            if (index.containsKey(terms[i])) {
+                Posting p = index.get(terms[i]).pList;
+                while (p != null) {
+                    scores[p.docId] += (1 + Math.log10(p.dtf)) * Math.log10(num_files / index.get(terms[i]).doc_freq);
+                    p = p.next;
+                }
+            }
+        }
+
+        for (int i = 0; i < num_files; i++) {
+            if (scores[i] > 0) {
+                double norm = sources.get(i).norm;
+                scores[i] = scores[i] / norm;
+                sortedScore.insertScoreRecord(scores[i], sources.get(i).URL, sources.get(i).title, sources.get(i).text);
+            }
+        }
+        sortedScore.printScores();
+        System.out.println("------------------------- top_k -------------------------");
 
         // // 1 float Scores[N] = 0
         // // 2 Initialize Length[N]
@@ -71,7 +141,8 @@ public class Index {
         // for (String term : words) {
         // // 4 do calculate w t, q and fetch postings list for t
         // term = term.toLowerCase();
-        // double tdf = index.get(term).doc_freq; // number of documents that contains the term
+        // double tdf = index.get(term).doc_freq; // number of documents that contains
+        // the term
         // double ttf = index.get(term).term_freq;
         // // 4.a compute idf
         // double idf = log10(num_files / (double) tdf); // can be computed earlier
