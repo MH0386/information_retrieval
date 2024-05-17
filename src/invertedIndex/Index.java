@@ -54,27 +54,39 @@ public class Index {
             normA += Math.pow(vector1[i], 2);
             normB += Math.pow(vector2[i], 2);
         }
+        // System.out.println("dotProduct: " + dotProduct);
+        // System.out.println("normA: " + normA);
+        // System.out.println("normB: " + normB);
+
         return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 
     public int get_tf(String doc, String term) {
         String[] words = doc.split("\\W+");
         int count = 0;
-        for (String word : words) {
-            if (word.equals(term)) {
-                count++;
+        if (index.get(term) == null) {
+            for (String word : words) {
+                if (word.equals(term)) {
+                    count++;
+                }
             }
+        } else {
+            count = index.get(term).term_freq;
         }
         return count;
     }
 
     public int get_df(String term) {
         int df = 0;
-        for (int file_id : sources.keySet()) {
-            String text = get_text_from_doc(file_id);
-            if (text.contains(term)) {
-                df++;
+        if (index.get(term) == null) {
+            for (int file_id : sources.keySet()) {
+                String text = get_text_from_doc(file_id);
+                if (text.contains(term)) {
+                    df++;
+                }
             }
+        } else {
+            df = index.get(term).doc_freq;
         }
         return df;
     }
@@ -82,37 +94,39 @@ public class Index {
     public double[] compute_vectors(Boolean is_doc) {
         Set<String> input_term_set = new HashSet<>();
         Set<String> all_terms_set = new HashSet<>();
-        if (Boolean.TRUE.equals(is_doc)) {
+        if (is_doc) {
             input_term_set.addAll(Arrays.asList(all_unique_words_doc));
             all_terms_set.addAll(Arrays.asList(all_unique_words_query));
         } else {
             input_term_set.addAll(Arrays.asList(all_unique_words_query));
         }
+        // System.out.println("\n\ninput_term_set: " + input_term_set);
         all_terms_set.addAll(input_term_set);
         all_terms_set.addAll(Arrays.asList(all_unique_words_doc));
         String[] all_terms = all_terms_set.toArray(new String[0]);
         Arrays.sort(all_terms);
-        System.out.println("all_terms length: " + all_terms.length);
-        System.out.println("all_terms: " + Arrays.toString(all_terms));
+        // System.out.println("all_terms length: " + all_terms.length);
+        // System.out.println("all_terms: " + Arrays.toString(all_terms));
         int len = all_terms.length;
         double cosine_normalize_value = 0.0;
         double[] tf_idfs = new double[len];
         double[] vectors = new double[len];
         double tf;
         double idf;
-        double min_value = 0.000000000001;
-        DecimalFormat df = new DecimalFormat("#.##");
+        double min_value = 0.1;
+        // DecimalFormat df = new DecimalFormat("#.##");
         for (int i = 0; i < len; i++) {
             if (input_term_set.contains(all_terms[i])) {
-                if (Boolean.TRUE.equals(is_doc)) {
+                if (is_doc) {
                     tf = 1 + Math.log10(index.get(all_terms[i]).term_freq + min_value);
                     tf_idfs[i] = tf;
                 } else {
                     tf = 1 + Math.log10(get_tf(query, all_terms[i]) + min_value);
                     idf = Math.log10((num_files / get_df(all_terms[i])) + min_value);
-                    tf = Double.valueOf(df.format(tf));
-                    idf = Double.valueOf(df.format(idf));
+                    // tf = Double.valueOf(df.format(tf));
+                    // idf = Double.valueOf(df.format(idf));
                     tf_idfs[i] = tf * idf;
+                    // System.out.println("term: " + all_terms[i] + " tf: " + tf + " idf: " + idf + " tf_idf: " + tf_idfs[i]);
                 }
             } else {
                 tf_idfs[i] = 0;
@@ -125,8 +139,10 @@ public class Index {
         cosine_normalize_value = Math.sqrt(cosine_normalize_value);
         for (int i = 0; i < len; i++) {
             vectors[i] = tf_idfs[i] / cosine_normalize_value;
-            vectors[i] = Double.valueOf(df.format(vectors[i]));
+            // vectors[i] = Double.valueOf(df.format(vectors[i]));
         }
+        // System.out.println(Arrays.toString(tf_idfs));
+        // System.out.println(Arrays.toString(vectors));
         return vectors;
     }
 
@@ -151,7 +167,7 @@ public class Index {
     public void get_all_unique_words() {
         Set<String> all_terms_in_doc = new HashSet<>();
         Set<String> all_terms_in_query = new HashSet<>();
-        String[] words_in_query = query.split("\\W+");
+        String[] words_in_query = query.toLowerCase().split("\\W+");
         for (String term : index.keySet()) {
             all_terms_in_doc.add(term);
         }
@@ -168,11 +184,11 @@ public class Index {
         System.out.println("\n------------------------- top_k -------------------------");
 
         double[] query_vector = compute_vectors(false);
-        System.out.println("query_vec: " + Arrays.toString(query_vector));
+        // System.out.println("query_vec: " + Arrays.toString(query_vector));
         double[] cosine_similarity = new double[num_files];
         for (int i = 0; i < num_files; i++) {
             double[] document_vector = compute_vectors(true);
-            System.out.println("doc_vec: " + Arrays.toString(document_vector));
+            // System.out.println("doc_vec: " + Arrays.toString(document_vector));
             cosine_similarity[i] = computeCosineSimilarity(query_vector, document_vector);
         }
         sortedScore = new SortedScore();
@@ -185,6 +201,7 @@ public class Index {
                     sources.get(i).text);
         }
         sortedScore.printScores();
+        // System.out.println(Arrays.toString(cosine_similarity));
         System.out.println("------------------------- top_k -------------------------");
     }
 

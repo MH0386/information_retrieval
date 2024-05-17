@@ -22,7 +22,7 @@ public class App {
         index.store("index");
         // index.buildBiwordIndex();
         // index.load("index");
-        index.query = "best car insurance";
+        index.query = "training data";
         index.get_all_unique_words();
         System.out.println("Number of unique words: " + index.all_unique_words_doc.length);
         System.out.println("Number of files: " + index.num_files);
