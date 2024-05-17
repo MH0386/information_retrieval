@@ -1,10 +1,9 @@
 package invertedIndex;
 
 import java.io.File;
-import java.io.IOException;
 
 public class App {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         Index index = new Index();
         String files = "src\\collection\\";
         File file = new File(files);

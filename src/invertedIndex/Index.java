@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,13 +24,13 @@ import org.jsoup.select.Elements;
 public class Index {
 
     // --------------------------------------------
-    int num_files = 0;
+    public int num_files = 0;
     String[] files;
-    String query;
+    public String query;
     public Map<Integer, SourceRecord> sources; // store the doc_id and the file name.
     public HashMap<String, DictEntry> index; // THe inverted index
-    String[] all_unique_words_doc;
-    String[] all_unique_words_query;
+    public String[] all_unique_words_doc;
+    public String[] all_unique_words_query;
     SortedScore sortedScore;
     // --------------------------------------------
 
@@ -62,9 +61,9 @@ public class Index {
     }
 
     public int get_tf(String doc, String term) {
-        String[] words = doc.split("\\W+");
         int count = 0;
         if (index.get(term) == null) {
+            String[] words = doc.split("\\W+");
             for (String word : words) {
                 if (word.equals(term)) {
                     count++;
@@ -91,12 +90,13 @@ public class Index {
         return df;
     }
 
-    public double[] compute_vectors(Boolean is_doc) {
+    public double[] compute_vectors(Boolean is_doc, int file_id) {
         Set<String> input_term_set = new HashSet<>();
         Set<String> all_terms_set = new HashSet<>();
         if (is_doc) {
-            input_term_set.addAll(Arrays.asList(all_unique_words_doc));
+            input_term_set.addAll(Arrays.asList(get_text_from_doc(file_id).split("\\W+")));
             all_terms_set.addAll(Arrays.asList(all_unique_words_query));
+            // System.out.println("input_term_set: " + input_term_set);
         } else {
             input_term_set.addAll(Arrays.asList(all_unique_words_query));
         }
@@ -118,15 +118,17 @@ public class Index {
         for (int i = 0; i < len; i++) {
             if (input_term_set.contains(all_terms[i])) {
                 if (is_doc) {
-                    tf = 1 + Math.log10(index.get(all_terms[i]).term_freq + min_value);
+                    tf = 1 + Math.log10(get_tf(get_text_from_doc(file_id), all_terms[i]) + min_value);
                     tf_idfs[i] = tf;
+                    // System.out.println(" tf: " + get_tf(get_text_from_doc(file_id),
+                    // all_terms[i]));
                 } else {
                     tf = 1 + Math.log10(get_tf(query, all_terms[i]) + min_value);
                     idf = Math.log10((num_files / get_df(all_terms[i])) + min_value);
                     // tf = Double.valueOf(df.format(tf));
                     // idf = Double.valueOf(df.format(idf));
                     tf_idfs[i] = tf * idf;
-                    // System.out.println("term: " + all_terms[i] + " tf: " + tf + " idf: " + idf + " tf_idf: " + tf_idfs[i]);
+
                 }
             } else {
                 tf_idfs[i] = 0;
@@ -153,12 +155,12 @@ public class Index {
             try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                 String line;
                 while ((line = br.readLine()) != null) {
-                    text += line + "\n";
+                    text += line + " ";
                 }
             } catch (IOException e) {
                 System.out.println("Error reading file: " + file);
             }
-            return text;
+            return text.toLowerCase();
         } else {
             return "Document not found";
         }
@@ -183,22 +185,27 @@ public class Index {
     public void top_k(int k) {
         System.out.println("\n------------------------- top_k -------------------------");
 
-        double[] query_vector = compute_vectors(false);
+        double[] query_vector = compute_vectors(false, -1);
         // System.out.println("query_vec: " + Arrays.toString(query_vector));
         double[] cosine_similarity = new double[num_files];
         for (int i = 0; i < num_files; i++) {
-            double[] document_vector = compute_vectors(true);
+            double[] document_vector = compute_vectors(true, i);
             // System.out.println("doc_vec: " + Arrays.toString(document_vector));
             cosine_similarity[i] = computeCosineSimilarity(query_vector, document_vector);
         }
         sortedScore = new SortedScore();
 
-        for (int i = 0; i < num_files; i++) {
-            sortedScore.insertScoreRecord(
-                    cosine_similarity[i],
-                    sources.get(i).URL,
-                    sources.get(i).title,
-                    sources.get(i).text);
+        for (int i = 0; i < k; i++) {
+            try {
+                sortedScore.insertScoreRecord(
+                        cosine_similarity[i],
+                        sources.get(i).URL,
+                        sources.get(i).title,
+                        sources.get(i).text);
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+
         }
         sortedScore.printScores();
         // System.out.println(Arrays.toString(cosine_similarity));

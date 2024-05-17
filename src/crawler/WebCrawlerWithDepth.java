@@ -1,16 +1,16 @@
 package crawler;
 
-import invertedIndex.SourceRecord;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+//==============================================================================
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-//==============================================================================
+import invertedIndex.SourceRecord;
 
 public class WebCrawlerWithDepth {
 
@@ -92,7 +92,7 @@ public class WebCrawlerWithDepth {
                         .get();
                 // *** 2- get all links of the page use document select with parameter
                 // "a[href]")
-                Elements all_links = DOC.select("a[href]");
+                Elements linksOnPage = DOC.select("a[href]");
                 // *** 3- get all paragraphs <p></p> elements from the page (document)
                 // **** 4- get the text inside those paragraphs inside the tags <p></p>
                 // *** accumulate then into to String docText
@@ -107,16 +107,12 @@ public class WebCrawlerWithDepth {
                 plinks++; // accumulator for the link in a sub-branch
                 fid++; // current document id
 
-                for (Element page : all_links) {
+                for (Element page : linksOnPage) {
                     // **** 6- handle all the page hyper links "linksOnPage" you obtained from step
                     // 2 recursively with depth +1
                     // Hint :: Use page.attr("abs:href") for each page
                     String url = page.attr("abs:href");
-                    Document doc_page = Jsoup
-                            .connect(url)
-                            .userAgent(
-                                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
-                            .get();
+                    getPageLinks(url, depth + 1, index);
                 }
                 plinks--;
             } catch (IOException e) {
@@ -128,7 +124,7 @@ public class WebCrawlerWithDepth {
     // ==============================================================================
 
     public void parsePageLinks(String URL, int depth, invertedIndex.Index index) {
-        System.out.println("--------------- URL: " + URL + " --------  depth: " + depth + " - - - - - - --------- ");
+        System.out.println("--------- URL: " + URL + " ---------  depth: " + depth + " --------- ");
 
         plinks = 0;
         getPageLinks(URL, depth, index);
@@ -157,7 +153,7 @@ public class WebCrawlerWithDepth {
         invertedIndex.Index index = new invertedIndex.Index();
         setSources(index);
         setDomainKnowledge(index, storageName);
-        index.setNum_files(fid);
+        index.setNum_files(links.size());
         index.store(storageName);
 
         return index;
@@ -176,7 +172,11 @@ public class WebCrawlerWithDepth {
     public static void main(String[] args) {
         WebCrawlerWithDepth wc = new WebCrawlerWithDepth();
         invertedIndex.Index index = wc.initialize("test");
-        index.top_k("narmer giza pyramid", 10);
+        index.query = "narmer giza pyramid";
+        index.get_all_unique_words();
+        System.out.println("Number of unique words: " + index.all_unique_words_doc.length);
+        System.out.println("Number of files: " + index.num_files);
+        index.top_k(10);
         index.searchLoop();
     }
 }
