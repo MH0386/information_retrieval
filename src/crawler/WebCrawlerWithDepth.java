@@ -1,6 +1,9 @@
 package crawler;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -153,8 +156,6 @@ public class WebCrawlerWithDepth {
         setSources(index);
         setDomainKnowledge(index, storageName);
         index.setNum_files(links.size());
-        index.store(storageName);
-
         return index;
     }
 
@@ -167,10 +168,61 @@ public class WebCrawlerWithDepth {
 
     }
 
+    String preprocess_page_content(Document page) {
+        Element PAGE = page.body();
+        String PAGE_TITLE = page.title();
+        String PAGE_TEXT = PAGE.text();
+        PAGE_TEXT = PAGE_TEXT.replaceAll("[^a-zA-Z0-9 .]", "");
+        PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d\\.\\d)", "\n$1 ");
+        PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d)", "\n$1 ");
+        PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d)\\s(\\.\\d)", "$1$2");
+        PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2})([a-zA-Z])", "\n$1 $2");
+        return PAGE_TITLE + "\n\n" + PAGE_TEXT;
+    }
+
+    void write_page_to_file(Document page, String filename) {
+        String content = preprocess_page_content(page);
+        filename = "src\\crawler\\collection\\" + filename;
+        try (PrintWriter output = new PrintWriter(new FileWriter(filename))) {
+            output.write(content);
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    void get_links_content() {
+        int file_id = 1;
+        for (String link : links) {
+            try {
+                Document page = Jsoup
+                        .connect(link)
+                        .userAgent(
+                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
+                        .get();
+                write_page_to_file(page, "doc" + file_id);
+                file_id++;
+            } catch (IOException e) {
+                System.err.println("For '" + link + "': " + e.getMessage());
+            }
+        }
+    }
+
     // ==============================================================================
     public static void main(String[] args) {
         WebCrawlerWithDepth wc = new WebCrawlerWithDepth();
         invertedIndex.Index index = wc.initialize("test");
+        // wc.get_links_content();
+        String files = "src\\crawler\\collection\\";
+        File file = new File(files);
+        String[] fileList = file.list();
+        fileList = index.sort(fileList);
+        for (int i = 0; i < fileList.length; i++) {
+            fileList[i] = files + fileList[i];
+        }
+        index.num_files = fileList.length;
+        index.files = fileList;
+        index.buildIndex();
+        index.store("test");
         index.query = "narmer giza pyramid";
         index.get_all_unique_words();
         System.out.println("Number of unique words: " + index.all_unique_words_doc.length);

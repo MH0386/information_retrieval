@@ -25,7 +25,7 @@ public class Index {
 
     // --------------------------------------------
     public int num_files = 0;
-    String[] files;
+    public String[] files;
     public String query;
     public Map<Integer, SourceRecord> sources; // store the doc_id and the file name.
     public HashMap<String, DictEntry> index; // THe inverted index
@@ -637,7 +637,7 @@ public class Index {
     }
 
     // ---------------------------------
-    String[] sort(String[] words) { // bubble sort
+   public String[] sort(String[] words) { // bubble sort
         boolean sorted = false;
         String sTmp;
         // -------------------------------------------------------
