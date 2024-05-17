@@ -54,24 +54,59 @@ public class Index {
         return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 
-    public double[] compute_vectors(String document) {
+    public int get_tf(String doc, String term) {
+        String[] words = doc.split("\\W+");
+        int count = 0;
+        for (String word : words) {
+            if (word.equals(term)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public double[] compute_vectors(String document, Boolean is_doc) {
         String[] terms = document.toLowerCase().split("\\W+");
         // System.out.println("terms length: " + terms.length);
-        Set<String> termSet = new HashSet<>(Arrays.asList(terms));
-        int len = all_unique_words.length;
+        Set<String> input_term_set = new HashSet<>(Arrays.asList(terms));
+        Set<String> all_terms_set = new HashSet<>();
+        all_terms_set.addAll(input_term_set);
+        all_terms_set.addAll(Arrays.asList(all_unique_words));
+        String[] all_terms = all_terms_set.toArray(new String[0]);
+        Arrays.sort(all_terms);
+        System.out.println("all_terms length: " + all_terms.length);
+        System.out.println("all_terms: " + Arrays.toString(all_terms));
+        int len = all_terms.length;
         double cosine_normalize_value = 0.0;
         double[] tf_idfs = new double[len];
         double[] vectors = new double[len];
-
+        double tf;
+        double idf;
+        double min_value = 0.00000000000;
         for (int i = 0; i < len; i++) {
-            if (termSet.contains(all_unique_words[i])) {
-                double tf = 1 + Math.log10(index.get(all_unique_words[i]).term_freq + 0.01);
-                double idf = Math.log10((num_files / index.get(all_unique_words[i]).doc_freq) + 0.01);
-                tf_idfs[i] = tf * idf;
-                // System.out.println(all_unique_words[i] + " " + tf_idfs[i]);
+                // System.out.println(all_terms[i]);
+            if (input_term_set.contains(all_terms[i])) {
+                if (is_doc) {
+                    tf = 1 + Math.log10(index.get(all_terms[i]).term_freq + min_value);
+                    tf_idfs[i] = tf;
+                } else {
+                    if (!index.containsKey(all_terms[i])) {
+                        tf = 1 + Math.log10(get_tf(document, all_terms[i]) + min_value);
+                        idf = Math.log10((num_files / 1) + min_value);
+                    } else {
+                        tf = 1 + Math.log10(get_tf(document, all_terms[i]) + min_value);
+                        idf = Math.log10((num_files / index.get(all_terms[i]).doc_freq) + min_value);
+                    }
+                    System.out.println();
+                    System.out.println(all_terms[i] + " tf " + tf);
+                    System.out.println(all_terms[i] + " idf " + idf);
+                    System.out.println();
+                    tf_idfs[i] = tf * idf;
+                }
             } else {
                 tf_idfs[i] = 0;
             }
+                // System.out.println(all_terms[i] + " tf_idfs " + tf_idfs[i]);
         }
 
         for (int i = 0; i < len; i++) {
@@ -105,18 +140,18 @@ public class Index {
         }
     }
 
-    public double[] get_softmax(double[] scores) {
-        double[] softmax = new double[scores.length];
-        double sum = 0;
-        for (int i = 0; i < scores.length; i++) {
-            softmax[i] = Math.exp(scores[i]);
-            sum += softmax[i];
-        }
-        for (int i = 0; i < scores.length; i++) {
-            softmax[i] /= sum;
-        }
-        return softmax;
-    }
+    // public double[] get_softmax(double[] scores) {
+    // double[] softmax = new double[scores.length];
+    // double sum = 0;
+    // for (int i = 0; i < scores.length; i++) {
+    // softmax[i] = Math.exp(scores[i]);
+    // sum += softmax[i];
+    // }
+    // for (int i = 0; i < scores.length; i++) {
+    // softmax[i] /= sum;
+    // }
+    // return softmax;
+    // }
 
     public void get_all_unique_words() {
         Set<String> allTerms = new HashSet<>();
@@ -124,27 +159,32 @@ public class Index {
             allTerms.add(term);
         }
         all_unique_words = allTerms.toArray(new String[0]);
-        // Arrays.sort(all_unique_words);
+        Arrays.sort(all_unique_words);
     }
 
     public void top_k(String phrase, int k) {
-        System.out.println("\n\n------------------------- top_k -------------------------");
+        System.out.println("\n------------------------- top_k -------------------------");
         System.out.println("Search phrase: " + phrase);
         String[] words = phrase.split("\\W+");
         Arrays.sort(words);
 
-        double[] query_vector = compute_vectors(phrase);
+        double[] query_vector = compute_vectors(phrase, false);
+        System.out.println("query_vec: " + Arrays.toString(query_vector));
         double[] cosine_similarity = new double[num_files];
         for (int i = 0; i < num_files; i++) {
             String document = get_text_from_doc(i);
-            double[] document_vector = compute_vectors(document);
+            double[] document_vector = compute_vectors(document, true);
+            System.out.println("doc_vec: " + Arrays.toString(document_vector));
             cosine_similarity[i] = computeCosineSimilarity(query_vector, document_vector);
         }
         sortedScore = new SortedScore();
-        
+
         // cosine_similarity = get_softmax(cosine_similarity);
         for (int i = 0; i < num_files; i++) {
-            sortedScore.insertScoreRecord(cosine_similarity[i], sources.get(i).URL, sources.get(i).title,
+            sortedScore.insertScoreRecord(
+                    cosine_similarity[i],
+                    sources.get(i).URL,
+                    sources.get(i).title,
                     sources.get(i).text);
         }
         sortedScore.printScores();

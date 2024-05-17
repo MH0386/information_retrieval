@@ -29,7 +29,7 @@ public class App {
         // String test = "data should plain greatest comif";
         // System.out.println("Boolean Model result = \n" + index.find(test));
         // System.out.println("Boolean Model result = " + index.positionalIndex(test));
-        index.top_k("Reinforcement Learning", 10);
+        index.top_k("best car insurance", 10);
 
         // // Search
         // String phrase = "";
