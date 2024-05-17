@@ -70,20 +70,11 @@ public class Index {
 
     public int get_df(String term) {
         int df = 0;
-        // for (int file_id : sources.keySet()) {
-        // String text = get_text_from_doc(file_id);
-        // if (text.contains(term)) {
-        // df++;
-        // }
-        // }
-        if (term.equalsIgnoreCase("auto")) {
-            df = 5000;
-        } else if (term.equalsIgnoreCase("best")) {
-            df = 50000;
-        } else if (term.equalsIgnoreCase("car")) {
-            df = 10000;
-        } else if (term.equalsIgnoreCase("insurance")) {
-            df = 1000;
+        for (int file_id : sources.keySet()) {
+            String text = get_text_from_doc(file_id);
+            if (text.contains(term)) {
+                df++;
+            }
         }
         return df;
     }
@@ -91,7 +82,7 @@ public class Index {
     public double[] compute_vectors(Boolean is_doc) {
         Set<String> input_term_set = new HashSet<>();
         Set<String> all_terms_set = new HashSet<>();
-        if (is_doc) {
+        if (Boolean.TRUE.equals(is_doc)) {
             input_term_set.addAll(Arrays.asList(all_unique_words_doc));
             all_terms_set.addAll(Arrays.asList(all_unique_words_query));
         } else {
@@ -112,29 +103,20 @@ public class Index {
         double min_value = 0.000000000001;
         DecimalFormat df = new DecimalFormat("#.##");
         for (int i = 0; i < len; i++) {
-            // System.out.println(all_terms[i]);
             if (input_term_set.contains(all_terms[i])) {
-                if (is_doc) {
+                if (Boolean.TRUE.equals(is_doc)) {
                     tf = 1 + Math.log10(index.get(all_terms[i]).term_freq + min_value);
                     tf_idfs[i] = tf;
-                    // System.out.println("tf " + tf);
-                    // System.out.println("tf_idf " + tf_idfs[i]);
                 } else {
-                    // System.out.println(get_df(all_terms[i]) + all_terms[i]);
                     tf = 1 + Math.log10(get_tf(query, all_terms[i]) + min_value);
-                    // idf = Math.log10((num_files / get_df(all_terms[i])) + min_value);
-                    idf = Math.log10((1000000 / get_df(all_terms[i])) + min_value);
+                    idf = Math.log10((num_files / get_df(all_terms[i])) + min_value);
                     tf = Double.valueOf(df.format(tf));
                     idf = Double.valueOf(df.format(idf));
                     tf_idfs[i] = tf * idf;
-                    // System.out.println("tf " + tf);
-                    // System.out.println("idf " + idf);
-                    // System.out.println("tf_idf " + tf_idfs[i]);
                 }
             } else {
                 tf_idfs[i] = 0;
             }
-            // System.out.println(all_terms[i] + " tf_idfs " + tf_idfs[i]);
         }
 
         for (int i = 0; i < len; i++) {
@@ -184,12 +166,11 @@ public class Index {
 
     public void top_k(int k) {
         System.out.println("\n------------------------- top_k -------------------------");
-       
+
         double[] query_vector = compute_vectors(false);
         System.out.println("query_vec: " + Arrays.toString(query_vector));
         double[] cosine_similarity = new double[num_files];
         for (int i = 0; i < num_files; i++) {
-            // String document = get_text_from_doc(i);
             double[] document_vector = compute_vectors(true);
             System.out.println("doc_vec: " + Arrays.toString(document_vector));
             cosine_similarity[i] = computeCosineSimilarity(query_vector, document_vector);
@@ -204,7 +185,6 @@ public class Index {
                     sources.get(i).text);
         }
         sortedScore.printScores();
-        // System.out.println(Arrays.toString(cosine_similarity));
         System.out.println("------------------------- top_k -------------------------");
     }
 
