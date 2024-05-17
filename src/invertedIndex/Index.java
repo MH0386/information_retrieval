@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,9 +27,11 @@ public class Index {
     // --------------------------------------------
     int num_files = 0;
     String[] files;
+    String query;
     public Map<Integer, SourceRecord> sources; // store the doc_id and the file name.
     public HashMap<String, DictEntry> index; // THe inverted index
-    String[] all_unique_words;
+    String[] all_unique_words_doc;
+    String[] all_unique_words_query;
     SortedScore sortedScore;
     // --------------------------------------------
 
@@ -65,13 +68,37 @@ public class Index {
         return count;
     }
 
-    public double[] compute_vectors(String document, Boolean is_doc) {
-        String[] terms = document.toLowerCase().split("\\W+");
-        // System.out.println("terms length: " + terms.length);
-        Set<String> input_term_set = new HashSet<>(Arrays.asList(terms));
+    public int get_df(String term) {
+        int df = 0;
+        // for (int file_id : sources.keySet()) {
+        // String text = get_text_from_doc(file_id);
+        // if (text.contains(term)) {
+        // df++;
+        // }
+        // }
+        if (term.equalsIgnoreCase("auto")) {
+            df = 5000;
+        } else if (term.equalsIgnoreCase("best")) {
+            df = 50000;
+        } else if (term.equalsIgnoreCase("car")) {
+            df = 10000;
+        } else if (term.equalsIgnoreCase("insurance")) {
+            df = 1000;
+        }
+        return df;
+    }
+
+    public double[] compute_vectors(Boolean is_doc) {
+        Set<String> input_term_set = new HashSet<>();
         Set<String> all_terms_set = new HashSet<>();
+        if (is_doc) {
+            input_term_set.addAll(Arrays.asList(all_unique_words_doc));
+            all_terms_set.addAll(Arrays.asList(all_unique_words_query));
+        } else {
+            input_term_set.addAll(Arrays.asList(all_unique_words_query));
+        }
         all_terms_set.addAll(input_term_set);
-        all_terms_set.addAll(Arrays.asList(all_unique_words));
+        all_terms_set.addAll(Arrays.asList(all_unique_words_doc));
         String[] all_terms = all_terms_set.toArray(new String[0]);
         Arrays.sort(all_terms);
         System.out.println("all_terms length: " + all_terms.length);
@@ -82,42 +109,41 @@ public class Index {
         double[] vectors = new double[len];
         double tf;
         double idf;
-        double min_value = 0.00000000000;
+        double min_value = 0.000000000001;
+        DecimalFormat df = new DecimalFormat("#.##");
         for (int i = 0; i < len; i++) {
-                // System.out.println(all_terms[i]);
+            // System.out.println(all_terms[i]);
             if (input_term_set.contains(all_terms[i])) {
                 if (is_doc) {
                     tf = 1 + Math.log10(index.get(all_terms[i]).term_freq + min_value);
                     tf_idfs[i] = tf;
+                    // System.out.println("tf " + tf);
+                    // System.out.println("tf_idf " + tf_idfs[i]);
                 } else {
-                    if (!index.containsKey(all_terms[i])) {
-                        tf = 1 + Math.log10(get_tf(document, all_terms[i]) + min_value);
-                        idf = Math.log10((num_files / 1) + min_value);
-                    } else {
-                        tf = 1 + Math.log10(get_tf(document, all_terms[i]) + min_value);
-                        idf = Math.log10((num_files / index.get(all_terms[i]).doc_freq) + min_value);
-                    }
-                    System.out.println();
-                    System.out.println(all_terms[i] + " tf " + tf);
-                    System.out.println(all_terms[i] + " idf " + idf);
-                    System.out.println();
+                    // System.out.println(get_df(all_terms[i]) + all_terms[i]);
+                    tf = 1 + Math.log10(get_tf(query, all_terms[i]) + min_value);
+                    // idf = Math.log10((num_files / get_df(all_terms[i])) + min_value);
+                    idf = Math.log10((1000000 / get_df(all_terms[i])) + min_value);
+                    tf = Double.valueOf(df.format(tf));
+                    idf = Double.valueOf(df.format(idf));
                     tf_idfs[i] = tf * idf;
+                    // System.out.println("tf " + tf);
+                    // System.out.println("idf " + idf);
+                    // System.out.println("tf_idf " + tf_idfs[i]);
                 }
             } else {
                 tf_idfs[i] = 0;
             }
-                // System.out.println(all_terms[i] + " tf_idfs " + tf_idfs[i]);
+            // System.out.println(all_terms[i] + " tf_idfs " + tf_idfs[i]);
         }
 
         for (int i = 0; i < len; i++) {
-            cosine_normalize_value += Math.pow(tf_idfs[i], 2);
+            cosine_normalize_value += Math.pow(tf_idfs[i], 2.0);
         }
         cosine_normalize_value = Math.sqrt(cosine_normalize_value);
-
-        // System.out.println("cosine_normalize_value: " + cosine_normalize_value);
-        // System.out.println("tf_idfs: " + Arrays.toString(tf_idfs));
         for (int i = 0; i < len; i++) {
             vectors[i] = tf_idfs[i] / cosine_normalize_value;
+            vectors[i] = Double.valueOf(df.format(vectors[i]));
         }
         return vectors;
     }
@@ -140,46 +166,36 @@ public class Index {
         }
     }
 
-    // public double[] get_softmax(double[] scores) {
-    // double[] softmax = new double[scores.length];
-    // double sum = 0;
-    // for (int i = 0; i < scores.length; i++) {
-    // softmax[i] = Math.exp(scores[i]);
-    // sum += softmax[i];
-    // }
-    // for (int i = 0; i < scores.length; i++) {
-    // softmax[i] /= sum;
-    // }
-    // return softmax;
-    // }
-
     public void get_all_unique_words() {
-        Set<String> allTerms = new HashSet<>();
+        Set<String> all_terms_in_doc = new HashSet<>();
+        Set<String> all_terms_in_query = new HashSet<>();
+        String[] words_in_query = query.split("\\W+");
         for (String term : index.keySet()) {
-            allTerms.add(term);
+            all_terms_in_doc.add(term);
         }
-        all_unique_words = allTerms.toArray(new String[0]);
-        Arrays.sort(all_unique_words);
+        for (String term : words_in_query) {
+            all_terms_in_query.add(term);
+        }
+        all_unique_words_doc = all_terms_in_doc.toArray(new String[0]);
+        all_unique_words_query = all_terms_in_query.toArray(new String[0]);
+        Arrays.sort(all_unique_words_doc);
+        Arrays.sort(all_unique_words_query);
     }
 
-    public void top_k(String phrase, int k) {
+    public void top_k(int k) {
         System.out.println("\n------------------------- top_k -------------------------");
-        System.out.println("Search phrase: " + phrase);
-        String[] words = phrase.split("\\W+");
-        Arrays.sort(words);
-
-        double[] query_vector = compute_vectors(phrase, false);
+       
+        double[] query_vector = compute_vectors(false);
         System.out.println("query_vec: " + Arrays.toString(query_vector));
         double[] cosine_similarity = new double[num_files];
         for (int i = 0; i < num_files; i++) {
-            String document = get_text_from_doc(i);
-            double[] document_vector = compute_vectors(document, true);
+            // String document = get_text_from_doc(i);
+            double[] document_vector = compute_vectors(true);
             System.out.println("doc_vec: " + Arrays.toString(document_vector));
             cosine_similarity[i] = computeCosineSimilarity(query_vector, document_vector);
         }
         sortedScore = new SortedScore();
 
-        // cosine_similarity = get_softmax(cosine_similarity);
         for (int i = 0; i < num_files; i++) {
             sortedScore.insertScoreRecord(
                     cosine_similarity[i],

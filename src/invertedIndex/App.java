@@ -22,14 +22,15 @@ public class App {
         index.store("index");
         // index.buildBiwordIndex();
         // index.load("index");
+        index.query = "best car insurance";
         index.get_all_unique_words();
-        System.out.println("Number of unique words: " + index.all_unique_words.length);
+        System.out.println("Number of unique words: " + index.all_unique_words_doc.length);
         System.out.println("Number of files: " + index.num_files);
         // index.printDictionary();
         // String test = "data should plain greatest comif";
         // System.out.println("Boolean Model result = \n" + index.find(test));
         // System.out.println("Boolean Model result = " + index.positionalIndex(test));
-        index.top_k("best car insurance", 10);
+        index.top_k(10);
 
         // // Search
         // String phrase = "";
