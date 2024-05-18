@@ -25,7 +25,7 @@ public class App {
         // index.buildBiwordIndex();
         // index.load("index");
         System.out.println("Number of files: " + index.num_files);
-        // index.printDictionary();
+        index.printDictionary();
 
         // String test = "data should plain greatest comif";
         // System.out.println("Boolean Model result = \n" + index.find(test));
