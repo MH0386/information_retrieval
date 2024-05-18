@@ -70,7 +70,7 @@ public class Index {
                 }
             }
         } else {
-            count = index.get(term).term_freq;
+            count = index.get(term).pList.dtf;
         }
         return count;
     }
@@ -88,6 +88,15 @@ public class Index {
             df = index.get(term).doc_freq;
         }
         return df;
+    }
+
+    String preprocess_text(String text) {
+        text = text.replaceAll("[^a-zA-Z0-9 .]", "");
+        text = text.replaceAll("(\\d{1,2}\\.\\d\\.\\d)", "\n$1 ");
+        text = text.replaceAll("(\\d{1,2}\\.\\d)", "\n$1 ");
+        text = text.replaceAll("(\\d{1,2}\\.\\d)\\s(\\.\\d)", "$1$2");
+        text = text.replaceAll("(\\d{1,2})([a-zA-Z])", "\n$1 $2");
+        return text;
     }
 
     public double[] compute_vectors(Boolean is_doc, int file_id) {
@@ -112,11 +121,13 @@ public class Index {
         double[] tf_idfs = new double[len];
         double[] vectors = new double[len];
         double tf;
+        double df;
         double idf;
-        double min_value = 0.1;
+        double min_value = 0.0001;
         // DecimalFormat df = new DecimalFormat("#.##");
         for (int i = 0; i < len; i++) {
             if (input_term_set.contains(all_terms[i])) {
+                // System.out.println(all_terms[i]);
                 if (is_doc) {
                     tf = 1 + Math.log10(get_tf(get_text_from_doc(file_id), all_terms[i]) + min_value);
                     tf_idfs[i] = tf;
@@ -124,7 +135,12 @@ public class Index {
                     // all_terms[i]));
                 } else {
                     tf = 1 + Math.log10(get_tf(query, all_terms[i]) + min_value);
-                    idf = Math.log10((num_files / get_df(all_terms[i])) + min_value);
+                    df = get_df(all_terms[i]);
+                    if (df == 0) {
+                        idf = 0;
+                    } else {
+                        idf = Math.log10((num_files / df) + min_value);
+                    }
                     // tf = Double.valueOf(df.format(tf));
                     // idf = Double.valueOf(df.format(idf));
                     tf_idfs[i] = tf * idf;
@@ -160,7 +176,7 @@ public class Index {
             } catch (IOException e) {
                 System.out.println("Error reading file: " + file);
             }
-            return text.toLowerCase();
+            return preprocess_text(text.toLowerCase());
         } else {
             return "Document not found";
         }
@@ -169,6 +185,7 @@ public class Index {
     public void get_all_unique_words() {
         Set<String> all_terms_in_doc = new HashSet<>();
         Set<String> all_terms_in_query = new HashSet<>();
+        query = preprocess_text(query);
         String[] words_in_query = query.toLowerCase().split("\\W+");
         for (String term : index.keySet()) {
             all_terms_in_doc.add(term);
@@ -195,20 +212,14 @@ public class Index {
         }
         sortedScore = new SortedScore();
 
-        for (int i = 0; i < k; i++) {
-            try {
-                sortedScore.insertScoreRecord(
-                        cosine_similarity[i],
-                        sources.get(i).URL,
-                        sources.get(i).title,
-                        sources.get(i).text);
-            } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
-            }
-
+        for (int i = 0; i < num_files; i++) {
+            sortedScore.insertScoreRecord(
+                    cosine_similarity[i],
+                    sources.get(i).URL,
+                    sources.get(i).title,
+                    sources.get(i).text);
         }
         sortedScore.printScores();
-        // System.out.println(Arrays.toString(cosine_similarity));
         System.out.println("------------------------- top_k -------------------------");
     }
 
@@ -219,7 +230,8 @@ public class Index {
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             try {
                 phrase = in.readLine();
-                // top_k(phrase);
+                query = phrase.toLowerCase();
+                top_k(10);
             } catch (Exception e) {
                 e.printStackTrace();
                 break;
@@ -637,7 +649,7 @@ public class Index {
     }
 
     // ---------------------------------
-   public String[] sort(String[] words) { // bubble sort
+    public String[] sort(String[] words) { // bubble sort
         boolean sorted = false;
         String sTmp;
         // -------------------------------------------------------
