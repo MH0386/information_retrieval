@@ -200,8 +200,7 @@ public class Index {
     }
 
     public void top_k(int k) {
-        System.out.println("\n------------------------- top_k -------------------------");
-
+        System.out.println("\n------------------------- top_k START -------------------------");
         double[] query_vector = compute_vectors(false, -1);
         // System.out.println("query_vec: " + Arrays.toString(query_vector));
         double[] cosine_similarity = new double[num_files];
@@ -219,8 +218,8 @@ public class Index {
                     sources.get(i).title,
                     sources.get(i).text);
         }
-        sortedScore.printScores();
-        System.out.println("------------------------- top_k -------------------------");
+        sortedScore.printScores(k);
+        System.out.println("------------------------- top_k END -------------------------");
     }
 
     public void searchLoop() {
@@ -231,6 +230,9 @@ public class Index {
             try {
                 phrase = in.readLine();
                 query = phrase.toLowerCase();
+                System.out.println("\tSending -> " + query);
+                get_all_unique_words();
+                System.out.println("Number of unique words: " + all_unique_words_doc.length);
                 top_k(10);
             } catch (Exception e) {
                 e.printStackTrace();

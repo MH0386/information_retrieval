@@ -57,6 +57,25 @@ public class SortedScore {
         return scores;
     }
 
+    String printScores(int max) {
+        String scores = "";
+        ScoreRecord p = start;
+        int i = 0;
+        while (p != null) {
+            i++;
+            if (i > 25) {
+                return scores;
+            }
+            if (i > max) {
+                return scores;
+            }
+            String str = "score = " + p.score + " \t " + p.title + "  \t\t" + p.URL;
+            scores += str + "<br>\n";
+            System.out.println(str);
+            p = p.next;
+        }
+        return scores;
+    }
     // sortedScore.insertScoreRecord(scores[i], sTemp +"<BR>\n <p> "+
     // this.doc_text.get(i)+"</p>\n </h3> ");
     String getHTMLScores() {

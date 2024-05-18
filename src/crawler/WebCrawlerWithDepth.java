@@ -223,11 +223,13 @@ public class WebCrawlerWithDepth {
         index.files = fileList;
         index.buildIndex();
         index.store("test");
-        index.query = "narmer giza pyramid";
+        index.query = "Mohamed Hisham abdelzaher";
         index.get_all_unique_words();
         System.out.println("Number of unique words: " + index.all_unique_words_doc.length);
         System.out.println("Number of files: " + index.num_files);
         index.top_k(10);
+        // wc.printSources();
+        // index.printDictionary();
         index.searchLoop();
     }
 }
