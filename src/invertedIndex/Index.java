@@ -137,10 +137,9 @@ public class Index {
                     tf = 1 + Math.log10(get_tf(query, all_terms[i]) + min_value);
                     df = get_df(all_terms[i]);
                     if (df == 0) {
-                        idf = 0;
-                    } else {
-                        idf = Math.log10((num_files / df) + min_value);
+                        df = min_value;
                     }
+                    idf = Math.log10((num_files / df) + min_value);
                     // tf = Double.valueOf(df.format(tf));
                     // idf = Double.valueOf(df.format(idf));
                     tf_idfs[i] = tf * idf;
@@ -225,14 +224,17 @@ public class Index {
     public void searchLoop() {
         String phrase;
         do {
-            System.out.println("Print search phrase: ");
+            System.out.print("Print search phrase: ");
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             try {
                 phrase = in.readLine();
                 query = phrase.toLowerCase();
                 System.out.println("\tSending -> " + query);
                 get_all_unique_words();
-                System.out.println("Number of unique words: " + all_unique_words_doc.length);
+                Set<String> all_unique_words = new HashSet<>();
+                all_unique_words.addAll(Arrays.asList(all_unique_words_doc));
+                all_unique_words.addAll(Arrays.asList(all_unique_words_query));
+                System.out.println("\tNumber of unique words: " + all_unique_words.size());
                 top_k(10);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -344,6 +346,7 @@ public class Index {
     }
 
     // -----------------------------------------------
+    @SuppressWarnings("unlikely-arg-type")
     public void buildIndex() {
         int file_id = 0;
         for (String file_name : files) {

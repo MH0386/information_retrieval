@@ -57,7 +57,7 @@ public class WebCrawlerWithDepth {
 
     public void getPageLinks(String URL, int depth, invertedIndex.Index index) {
         System.out.println(
-                "|| URL: [" + URL + "] --------  depth: " + depth + " fid=" + fid + " plinks=" + plinks + "\t|||| ");
+                "URL: " + URL + " - depth: " + depth + " fid: " + fid + " plinks: " + plinks);
 
         if ((!(links.contains(URL)))
                 && (depth < MAX_DEPTH)
@@ -126,8 +126,7 @@ public class WebCrawlerWithDepth {
     // ==============================================================================
 
     public void parsePageLinks(String URL, int depth, invertedIndex.Index index) {
-        System.out.println("--------- URL: " + URL + " ---------  depth: " + depth + " --------- ");
-
+        System.out.println("URL: " + URL + " - depth: " + depth);
         plinks = 0;
         getPageLinks(URL, depth, index);
     }
@@ -211,7 +210,7 @@ public class WebCrawlerWithDepth {
     public static void main(String[] args) {
         WebCrawlerWithDepth wc = new WebCrawlerWithDepth();
         invertedIndex.Index index = wc.initialize("test");
-        // wc.get_links_content();
+        wc.get_links_content();
         String files = "src\\crawler\\collection\\";
         File file = new File(files);
         String[] fileList = file.list();
@@ -223,13 +222,11 @@ public class WebCrawlerWithDepth {
         index.files = fileList;
         index.buildIndex();
         index.store("test");
-        index.query = "Mohamed Hisham abdelzaher";
-        index.get_all_unique_words();
-        System.out.println("Number of unique words: " + index.all_unique_words_doc.length);
-        System.out.println("Number of files: " + index.num_files);
-        index.top_k(10);
-        // wc.printSources();
-        // index.printDictionary();
+        System.out.println("\nNumber of files: " + index.num_files);
         index.searchLoop();
+        System.out.println("\n\nWeb Crawler Sources:");
+        wc.printSources();
+        System.out.println("\nInverted Index:");
+        index.printDictionary();
     }
 }
