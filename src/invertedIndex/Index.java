@@ -228,14 +228,16 @@ public class Index {
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             try {
                 phrase = in.readLine();
-                query = phrase.toLowerCase();
-                System.out.println("\tSending -> " + query);
-                get_all_unique_words();
-                Set<String> all_unique_words = new HashSet<>();
-                all_unique_words.addAll(Arrays.asList(all_unique_words_doc));
-                all_unique_words.addAll(Arrays.asList(all_unique_words_query));
-                System.out.println("\tNumber of unique words: " + all_unique_words.size());
-                top_k(10);
+                if (!phrase.isEmpty() && phrase != null) {
+                    query = phrase.toLowerCase();
+                    System.out.println("\tSending -> " + query);
+                    get_all_unique_words();
+                    Set<String> all_unique_words = new HashSet<>();
+                    all_unique_words.addAll(Arrays.asList(all_unique_words_doc));
+                    all_unique_words.addAll(Arrays.asList(all_unique_words_query));
+                    System.out.println("\tNumber of unique words: " + all_unique_words.size());
+                    top_k(10);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 break;
@@ -543,6 +545,9 @@ public class Index {
         for (int doc : common_doc) {
             result += "\t" + doc + " - " + sources.get(doc).title + " - " + sources.get(doc).length + "\n";
         }
+        if (result.equals("")) {
+            return "No results found\n";
+        }
         return result;
     }
 
@@ -649,6 +654,9 @@ public class Index {
             result += "\t" + posting.docId + " - " + sources.get(posting.docId).title + " - "
                     + sources.get(posting.docId).length + "\n";
             posting = posting.next;
+        }
+        if (result.equals("")) {
+            return "No results found\n";
         }
         return result;
     }

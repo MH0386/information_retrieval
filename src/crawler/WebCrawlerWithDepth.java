@@ -224,8 +224,6 @@ public class WebCrawlerWithDepth {
         index.store("test");
         System.out.println("\nNumber of files: " + index.num_files);
         index.searchLoop();
-        System.out.println("\n\nWeb Crawler Sources:");
-        wc.printSources();
         System.out.println("\nInverted Index:");
         index.printDictionary();
     }
