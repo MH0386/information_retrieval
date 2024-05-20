@@ -56,12 +56,11 @@ public class Index {
         // System.out.println("dotProduct: " + dotProduct);
         // System.out.println("normA: " + normA);
         // System.out.println("normB: " + normB);
-
         return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 
-    public int get_tf(String doc, String term) {
-        int count = 0;
+    public double get_tf(String doc, String term) {
+        double count = 0.0001;
         if (index.get(term) == null) {
             String[] words = doc.split("\\W+");
             for (String word : words) {
@@ -70,23 +69,26 @@ public class Index {
                 }
             }
         } else {
-            count = index.get(term).pList.dtf;
+            count = index.get(term).term_freq;
         }
         return count;
     }
 
-    public int get_df(String term) {
-        int df = 0;
+    public double get_tf(String term) {
+        double count = 0.0001;
         if (index.get(term) == null) {
-            for (int file_id : sources.keySet()) {
-                String text = get_text_from_doc(file_id);
-                if (text.contains(term)) {
-                    df++;
-                }
-            }
-        } else {
-            df = index.get(term).doc_freq;
+            return count;
         }
+        count = index.get(term).term_freq;
+        return count;
+    }
+
+    public double get_df(String term) {
+        double df = 0.0001;
+        if (index.get(term) == null) {
+            return df;
+        }
+        df = index.get(term).doc_freq;
         return df;
     }
 
@@ -129,7 +131,7 @@ public class Index {
             if (input_term_set.contains(all_terms[i])) {
                 // System.out.println(all_terms[i]);
                 if (is_doc) {
-                    tf = 1 + Math.log10(get_tf(get_text_from_doc(file_id), all_terms[i]) + min_value);
+                    tf = 1 + Math.log10(get_tf(all_terms[i]) + min_value);
                     tf_idfs[i] = tf;
                     // System.out.println(" tf: " + get_tf(get_text_from_doc(file_id),
                     // all_terms[i]));
@@ -149,7 +151,6 @@ public class Index {
                 tf_idfs[i] = 0;
             }
         }
-
         for (int i = 0; i < len; i++) {
             cosine_normalize_value += Math.pow(tf_idfs[i], 2.0);
         }

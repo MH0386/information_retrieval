@@ -63,8 +63,7 @@ public class WebCrawlerWithDepth {
                 && (depth < MAX_DEPTH)
                 && (fid < max_docs)
                 // && ((depth == 1) || (plinks < (MAX_PER_PAGE * (depth + 1))))
-                && ((depth == 0)
-                        || ((depth == 1) && (plinks < ((MAX_PER_PAGE) + 290)))
+                && ((depth == 0) || ((depth == 1) && (plinks < ((MAX_PER_PAGE) + 290)))
                         || (plinks < ((MAX_PER_PAGE * (depth + 1)) - (plinks / 2))))
                 && (!URL.contains("https://.m."))
                 && (URL.contains("https://en.w"))
@@ -100,8 +99,7 @@ public class WebCrawlerWithDepth {
                 // *** accumulate then into to String docText
                 String docText = getText(DOC);
                 // **** build the sources (given)
-                SourceRecord sr = new SourceRecord(fid, URL, DOC.title(),
-                        docText.substring(0, 30));
+                SourceRecord sr = new SourceRecord(fid, URL, DOC.title(), docText.substring(0, 30));
                 sr.length = docText.length();
                 sources.put(fid, sr);
                 // **** 5- pass the cocText for the inverted index with the doc id
@@ -162,21 +160,17 @@ public class WebCrawlerWithDepth {
         if (domain.equals("test")) {
             parsePageLinks("https://en.wikipedia.org/wiki/List_of_pharaohs", 0, index);
             parsePageLinks("https://en.wikipedia.org/wiki/Cairo", 0, index);
-
         }
-
     }
 
     String preprocess_page_content(Document page) {
-        Element PAGE = page.body();
-        String PAGE_TITLE = page.title();
-        String PAGE_TEXT = PAGE.text();
+        String PAGE_TEXT = getText(page);
         PAGE_TEXT = PAGE_TEXT.replaceAll("[^a-zA-Z0-9 .]", "");
         PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d\\.\\d)", "\n$1 ");
         PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d)", "\n$1 ");
         PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2}\\.\\d)\\s(\\.\\d)", "$1$2");
         PAGE_TEXT = PAGE_TEXT.replaceAll("(\\d{1,2})([a-zA-Z])", "\n$1 $2");
-        return PAGE_TITLE + "\n\n" + PAGE_TEXT;
+        return PAGE_TEXT;
     }
 
     void write_page_to_file(Document page, String filename) {
