@@ -34,12 +34,10 @@ public class SortedScore {
         }
     }
     // ------------------------------------------------
-
     void insertScoreRecord(double s, String u, String t, String d) {
         insertScoreRecord(new ScoreRecord(s, u, t, d));
     }
     // ------------------------------------------------
-
     String printScores() {
         String scores = "";
         ScoreRecord p = start;

@@ -137,10 +137,7 @@ public class Index {
                     // all_terms[i]));
                 } else {
                     tf = 1 + Math.log10(get_tf(query, all_terms[i]) + min_value);
-                    df = get_df(all_terms[i]);
-                    if (df == 0) {
-                        df = min_value;
-                    }
+                    df = get_df(all_terms[i]);                   
                     idf = Math.log10((num_files / df) + min_value);
                     // tf = Double.valueOf(df.format(tf));
                     // idf = Double.valueOf(df.format(idf));
@@ -210,7 +207,6 @@ public class Index {
             cosine_similarity[i] = computeCosineSimilarity(query_vector, document_vector);
         }
         sortedScore = new SortedScore();
-
         for (int i = 0; i < num_files; i++) {
             sortedScore.insertScoreRecord(
                     cosine_similarity[i],
@@ -219,6 +215,7 @@ public class Index {
                     sources.get(i).text);
         }
         sortedScore.printScores(k);
+        // System.out.println("Cosine Similarity: " + Arrays.toString(cosine_similarity));
         System.out.println("------------------------- top_k END -------------------------");
     }
 
@@ -237,7 +234,7 @@ public class Index {
                     all_unique_words.addAll(Arrays.asList(all_unique_words_doc));
                     all_unique_words.addAll(Arrays.asList(all_unique_words_query));
                     System.out.println("\tNumber of unique words: " + all_unique_words.size());
-                    top_k(10);
+                    top_k(7);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

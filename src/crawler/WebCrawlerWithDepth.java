@@ -202,9 +202,10 @@ public class WebCrawlerWithDepth {
 
     // ==============================================================================
     public static void main(String[] args) {
-        WebCrawlerWithDepth wc = new WebCrawlerWithDepth();
-        invertedIndex.Index index = wc.initialize("test");
-        wc.get_links_content();
+        // WebCrawlerWithDepth wc = new WebCrawlerWithDepth();
+        // invertedIndex.Index index = wc.initialize("test");
+        // wc.get_links_content();
+        invertedIndex.Index index = new invertedIndex.Index();
         String files = "src\\crawler\\collection\\";
         File file = new File(files);
         String[] fileList = file.list();
